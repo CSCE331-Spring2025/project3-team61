@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+.modalw {
+    width: 90%;
+    max-width: none!important;
+}
