@@ -3,7 +3,6 @@ import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import pg from "pg";
 const { Pool } = pg;
-import cors from "cors";
 
 dotenv.config({ path: "./.env" });
 
@@ -26,11 +25,11 @@ const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(cors());
+app.use(express.static("../frontend/dist"));
 
 const PORT = process.env.PORT || 8080;
 
-app.get("/products", (req, res) => {
+app.get("/api/products", (req, res) => {
     pool.query("SELECT * from product;").then((query_res) => {
         res.json(query_res.rows);
     });

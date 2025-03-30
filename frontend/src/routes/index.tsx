@@ -169,7 +169,7 @@ const ProductButton: FC<{
                                     }
                                 >
                                     <img
-                                        src="./src/assets/minus.svg"
+                                        src="minus.svg"
                                         width="20"
                                         className="mr-2 mt-0.5 border rounded-xl"
                                     />
@@ -179,7 +179,7 @@ const ProductButton: FC<{
                                     onClick={() => setQuantity((q) => q + 1)}
                                 >
                                     <img
-                                        src="./src/assets/plus.svg"
+                                        src="plus.svg"
                                         width="20"
                                         className="ml-2 mt-0.5 border rounded-xl"
                                     />
@@ -212,7 +212,7 @@ function Index() {
 
     useEffect(() => {
         const getProducts = () => {
-            fetch("http://localhost:8080/products")
+            fetch("/api/products")
                 .then((res) => res.json())
                 .then((res_json) => {
                     setProducts(res_json);
@@ -250,7 +250,7 @@ function Index() {
                             <img
                                 width="25"
                                 className="ml-3 mr-3"
-                                src="./src/assets/left-arrow.svg"
+                                src="left-arrow.svg"
                             />
                             <div className="font-bold">Back</div>
                         </button>
@@ -269,13 +269,13 @@ function Index() {
                             <img
                                 width={imgSize}
                                 height={imgSize}
-                                src="./src/assets/settings.svg"
+                                src="settings.svg"
                             />
                             <img
                                 className="ml-4"
                                 width={imgSize}
                                 height={imgSize}
-                                src="./src/assets/world.svg"
+                                src="world.svg"
                             />
                         </div>
                         <div className="ml-4">
@@ -306,7 +306,7 @@ function Index() {
                                             <button onClick={() => deleteOrderItem(idx)}>
                                                 <img
                                                     width="14"
-                                                    src="./src/assets/garbage.svg"
+                                                    src="garbage.svg"
                                                 />
                                             </button>
                                         </div>
