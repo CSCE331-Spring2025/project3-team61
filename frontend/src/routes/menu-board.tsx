@@ -28,7 +28,7 @@ function MenuBoard() {
   const [products, setProducts] = useState<Product[]>([]);
 
   const getProducts = () => {
-    fetch("http://localhost:8080/products")
+    fetch("/api/products")
       .then((res) => res.json())
       .then((res_json) => {
         setProducts(res_json);
