@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as MenuBoardImport } from './routes/menu-board'
+import { Route as CustomerImport } from './routes/customer'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
 
@@ -20,6 +21,12 @@ import { Route as IndexImport } from './routes/index'
 const MenuBoardRoute = MenuBoardImport.update({
   id: '/menu-board',
   path: '/menu-board',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const CustomerRoute = CustomerImport.update({
+  id: '/customer',
+  path: '/customer',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -53,6 +60,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutImport
       parentRoute: typeof rootRoute
     }
+    '/customer': {
+      id: '/customer'
+      path: '/customer'
+      fullPath: '/customer'
+      preLoaderRoute: typeof CustomerImport
+      parentRoute: typeof rootRoute
+    }
     '/menu-board': {
       id: '/menu-board'
       path: '/menu-board'
@@ -68,12 +82,14 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/customer': typeof CustomerRoute
   '/menu-board': typeof MenuBoardRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/customer': typeof CustomerRoute
   '/menu-board': typeof MenuBoardRoute
 }
 
@@ -81,27 +97,30 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/customer': typeof CustomerRoute
   '/menu-board': typeof MenuBoardRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/menu-board'
+  fullPaths: '/' | '/about' | '/customer' | '/menu-board'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/menu-board'
-  id: '__root__' | '/' | '/about' | '/menu-board'
+  to: '/' | '/about' | '/customer' | '/menu-board'
+  id: '__root__' | '/' | '/about' | '/customer' | '/menu-board'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  CustomerRoute: typeof CustomerRoute
   MenuBoardRoute: typeof MenuBoardRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  CustomerRoute: CustomerRoute,
   MenuBoardRoute: MenuBoardRoute,
 }
 
@@ -117,6 +136,7 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/about",
+        "/customer",
         "/menu-board"
       ]
     },
@@ -125,6 +145,9 @@ export const routeTree = rootRoute
     },
     "/about": {
       "filePath": "about.tsx"
+    },
+    "/customer": {
+      "filePath": "customer.tsx"
     },
     "/menu-board": {
       "filePath": "menu-board.tsx"
