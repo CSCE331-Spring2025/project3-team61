@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as MenuboardImport } from './routes/menu_board'
+import { Route as ManagerNavImport } from './routes/manager-nav'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
 
@@ -20,6 +21,12 @@ import { Route as IndexImport } from './routes/index'
 const MenuboardRoute = MenuboardImport.update({
   id: '/menu_board',
   path: '/menu_board',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ManagerNavRoute = ManagerNavImport.update({
+  id: '/manager-nav',
+  path: '/manager-nav',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -53,6 +60,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutImport
       parentRoute: typeof rootRoute
     }
+    '/manager-nav': {
+      id: '/manager-nav'
+      path: '/manager-nav'
+      fullPath: '/manager-nav'
+      preLoaderRoute: typeof ManagerNavImport
+      parentRoute: typeof rootRoute
+    }
     '/menu_board': {
       id: '/menu_board'
       path: '/menu_board'
@@ -68,12 +82,14 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/manager-nav': typeof ManagerNavRoute
   '/menu_board': typeof MenuboardRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/manager-nav': typeof ManagerNavRoute
   '/menu_board': typeof MenuboardRoute
 }
 
@@ -81,27 +97,30 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/manager-nav': typeof ManagerNavRoute
   '/menu_board': typeof MenuboardRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/menu_board'
+  fullPaths: '/' | '/about' | '/manager-nav' | '/menu_board'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/menu_board'
-  id: '__root__' | '/' | '/about' | '/menu_board'
+  to: '/' | '/about' | '/manager-nav' | '/menu_board'
+  id: '__root__' | '/' | '/about' | '/manager-nav' | '/menu_board'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  ManagerNavRoute: typeof ManagerNavRoute
   MenuboardRoute: typeof MenuboardRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  ManagerNavRoute: ManagerNavRoute,
   MenuboardRoute: MenuboardRoute,
 }
 
@@ -117,6 +136,7 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/about",
+        "/manager-nav",
         "/menu_board"
       ]
     },
@@ -125,6 +145,9 @@ export const routeTree = rootRoute
     },
     "/about": {
       "filePath": "about.tsx"
+    },
+    "/manager-nav": {
+      "filePath": "manager-nav.tsx"
     },
     "/menu_board": {
       "filePath": "menu_board.tsx"
