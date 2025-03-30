@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as MenuBoardImport } from './routes/menu-board'
+import { Route as CustomerImport } from './routes/customer'
 import { Route as ManagerPriceImport } from './routes/manager-price'
 import { Route as ManagerInventoryImport } from './routes/manager-inventory'
 import { Route as ManagerEmployeeImport } from './routes/manager-employee'
@@ -23,6 +24,12 @@ import { Route as IndexImport } from './routes/index'
 const MenuBoardRoute = MenuBoardImport.update({
   id: '/menu-board',
   path: '/menu-board',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const CustomerRoute = CustomerImport.update({
+  id: '/customer',
+  path: '/customer',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -74,6 +81,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutImport
       parentRoute: typeof rootRoute
     }
+    '/customer': {
+      id: '/customer'
+      path: '/customer'
+      fullPath: '/customer'
+      preLoaderRoute: typeof CustomerImport
+      parentRoute: typeof rootRoute
+    }
     '/manager-employee': {
       id: '/manager-employee'
       path: '/manager-employee'
@@ -110,6 +124,7 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/customer': typeof CustomerRoute
   '/manager-employee': typeof ManagerEmployeeRoute
   '/manager-inventory': typeof ManagerInventoryRoute
   '/manager-price': typeof ManagerPriceRoute
@@ -119,6 +134,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/customer': typeof CustomerRoute
   '/manager-employee': typeof ManagerEmployeeRoute
   '/manager-inventory': typeof ManagerInventoryRoute
   '/manager-price': typeof ManagerPriceRoute
@@ -129,6 +145,7 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/customer': typeof CustomerRoute
   '/manager-employee': typeof ManagerEmployeeRoute
   '/manager-inventory': typeof ManagerInventoryRoute
   '/manager-price': typeof ManagerPriceRoute
@@ -140,6 +157,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/customer' 
     | '/manager-employee'
     | '/manager-inventory'
     | '/manager-price'
@@ -148,6 +166,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/customer' 
     | '/manager-employee'
     | '/manager-inventory'
     | '/manager-price'
@@ -156,6 +175,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/customer' 
     | '/manager-employee'
     | '/manager-inventory'
     | '/manager-price'
@@ -166,6 +186,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  CustomerRoute: typeof CustomerRoute
   ManagerEmployeeRoute: typeof ManagerEmployeeRoute
   ManagerInventoryRoute: typeof ManagerInventoryRoute
   ManagerPriceRoute: typeof ManagerPriceRoute
@@ -175,6 +196,7 @@ export interface RootRouteChildren {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  CustomerRoute: CustomerRoute,
   ManagerEmployeeRoute: ManagerEmployeeRoute,
   ManagerInventoryRoute: ManagerInventoryRoute,
   ManagerPriceRoute: ManagerPriceRoute,
@@ -193,6 +215,7 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/about",
+        "/customer",
         "/manager-employee",
         "/manager-inventory",
         "/manager-price",
@@ -204,6 +227,9 @@ export const routeTree = rootRoute
     },
     "/about": {
       "filePath": "about.tsx"
+    },
+    "/customer": {
+      "filePath": "customer.tsx"
     },
     "/manager-employee": {
       "filePath": "manager-employee.tsx"
