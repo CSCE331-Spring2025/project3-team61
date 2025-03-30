@@ -12,10 +12,10 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as MenuBoardImport } from './routes/menu-board'
-import { Route as CustomerImport } from './routes/customer'
 import { Route as ManagerPriceImport } from './routes/manager-price'
 import { Route as ManagerInventoryImport } from './routes/manager-inventory'
 import { Route as ManagerEmployeeImport } from './routes/manager-employee'
+import { Route as CustomerImport } from './routes/customer'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
 
@@ -24,12 +24,6 @@ import { Route as IndexImport } from './routes/index'
 const MenuBoardRoute = MenuBoardImport.update({
   id: '/menu-board',
   path: '/menu-board',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const CustomerRoute = CustomerImport.update({
-  id: '/customer',
-  path: '/customer',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -48,6 +42,12 @@ const ManagerInventoryRoute = ManagerInventoryImport.update({
 const ManagerEmployeeRoute = ManagerEmployeeImport.update({
   id: '/manager-employee',
   path: '/manager-employee',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const CustomerRoute = CustomerImport.update({
+  id: '/customer',
+  path: '/customer',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -157,7 +157,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
-    | '/customer' 
+    | '/customer'
     | '/manager-employee'
     | '/manager-inventory'
     | '/manager-price'
@@ -166,7 +166,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
-    | '/customer' 
+    | '/customer'
     | '/manager-employee'
     | '/manager-inventory'
     | '/manager-price'
@@ -175,7 +175,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
-    | '/customer' 
+    | '/customer'
     | '/manager-employee'
     | '/manager-inventory'
     | '/manager-price'
