@@ -17,6 +17,12 @@ export const Route = createRootRoute({
                 <Link to="/manager-nav" className="[&.active]:font-bold">
                     Manager
                 </Link>
+                <Link to="/x-report" className="[&.active]:font-bold">
+                    X-Report
+                </Link>
+                <Link to="/z-report" className="[&.active]:font-bold">
+                    Z-Report
+                </Link>
             </div>
             <hr />
             <Outlet />

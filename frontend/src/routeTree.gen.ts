@@ -11,12 +11,26 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as ZReportImport } from './routes/z-report'
+import { Route as XReportImport } from './routes/x-report'
 import { Route as MenuboardImport } from './routes/menu_board'
 import { Route as ManagerNavImport } from './routes/manager-nav'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
 
 // Create/Update Routes
+
+const ZReportRoute = ZReportImport.update({
+  id: '/z-report',
+  path: '/z-report',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const XReportRoute = XReportImport.update({
+  id: '/x-report',
+  path: '/x-report',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const MenuboardRoute = MenuboardImport.update({
   id: '/menu_board',
@@ -74,6 +88,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MenuboardImport
       parentRoute: typeof rootRoute
     }
+    '/x-report': {
+      id: '/x-report'
+      path: '/x-report'
+      fullPath: '/x-report'
+      preLoaderRoute: typeof XReportImport
+      parentRoute: typeof rootRoute
+    }
+    '/z-report': {
+      id: '/z-report'
+      path: '/z-report'
+      fullPath: '/z-report'
+      preLoaderRoute: typeof ZReportImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -84,6 +112,8 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/manager-nav': typeof ManagerNavRoute
   '/menu_board': typeof MenuboardRoute
+  '/x-report': typeof XReportRoute
+  '/z-report': typeof ZReportRoute
 }
 
 export interface FileRoutesByTo {
@@ -91,6 +121,8 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/manager-nav': typeof ManagerNavRoute
   '/menu_board': typeof MenuboardRoute
+  '/x-report': typeof XReportRoute
+  '/z-report': typeof ZReportRoute
 }
 
 export interface FileRoutesById {
@@ -99,14 +131,35 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/manager-nav': typeof ManagerNavRoute
   '/menu_board': typeof MenuboardRoute
+  '/x-report': typeof XReportRoute
+  '/z-report': typeof ZReportRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/manager-nav' | '/menu_board'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/manager-nav'
+    | '/menu_board'
+    | '/x-report'
+    | '/z-report'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/manager-nav' | '/menu_board'
-  id: '__root__' | '/' | '/about' | '/manager-nav' | '/menu_board'
+  to:
+    | '/'
+    | '/about'
+    | '/manager-nav'
+    | '/menu_board'
+    | '/x-report'
+    | '/z-report'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/manager-nav'
+    | '/menu_board'
+    | '/x-report'
+    | '/z-report'
   fileRoutesById: FileRoutesById
 }
 
@@ -115,6 +168,8 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   ManagerNavRoute: typeof ManagerNavRoute
   MenuboardRoute: typeof MenuboardRoute
+  XReportRoute: typeof XReportRoute
+  ZReportRoute: typeof ZReportRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -122,6 +177,8 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   ManagerNavRoute: ManagerNavRoute,
   MenuboardRoute: MenuboardRoute,
+  XReportRoute: XReportRoute,
+  ZReportRoute: ZReportRoute,
 }
 
 export const routeTree = rootRoute
@@ -137,7 +194,9 @@ export const routeTree = rootRoute
         "/",
         "/about",
         "/manager-nav",
-        "/menu_board"
+        "/menu_board",
+        "/x-report",
+        "/z-report"
       ]
     },
     "/": {
@@ -151,6 +210,12 @@ export const routeTree = rootRoute
     },
     "/menu_board": {
       "filePath": "menu_board.tsx"
+    },
+    "/x-report": {
+      "filePath": "x-report.tsx"
+    },
+    "/z-report": {
+      "filePath": "z-report.tsx"
     }
   }
 }
