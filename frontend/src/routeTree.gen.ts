@@ -11,7 +11,7 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as MenuboardImport } from './routes/menu_board'
+import { Route as MenuBoardImport } from './routes/menu-board'
 import { Route as ManagerPriceImport } from './routes/manager-price'
 import { Route as ManagerInventoryImport } from './routes/manager-inventory'
 import { Route as ManagerEmployeeImport } from './routes/manager-employee'
@@ -95,11 +95,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManagerPriceImport
       parentRoute: typeof rootRoute
     }
-    '/menu_board': {
-      id: '/menu_board'
-      path: '/menu_board'
-      fullPath: '/menu_board'
-      preLoaderRoute: typeof MenuboardImport
+    '/menu-board': {
+      id: '/menu-board'
+      path: '/menu-board'
+      fullPath: '/menu-board'
+      preLoaderRoute: typeof MenuBoardImport
       parentRoute: typeof rootRoute
     }
   }
@@ -113,7 +113,7 @@ export interface FileRoutesByFullPath {
   '/manager-employee': typeof ManagerEmployeeRoute
   '/manager-inventory': typeof ManagerInventoryRoute
   '/manager-price': typeof ManagerPriceRoute
-  '/menu_board': typeof MenuboardRoute
+  '/menu-board': typeof MenuBoardRoute
 }
 
 export interface FileRoutesByTo {
@@ -122,7 +122,7 @@ export interface FileRoutesByTo {
   '/manager-employee': typeof ManagerEmployeeRoute
   '/manager-inventory': typeof ManagerInventoryRoute
   '/manager-price': typeof ManagerPriceRoute
-  '/menu_board': typeof MenuboardRoute
+  '/menu-board': typeof MenuBoardRoute
 }
 
 export interface FileRoutesById {
@@ -132,7 +132,7 @@ export interface FileRoutesById {
   '/manager-employee': typeof ManagerEmployeeRoute
   '/manager-inventory': typeof ManagerInventoryRoute
   '/manager-price': typeof ManagerPriceRoute
-  '/menu_board': typeof MenuboardRoute
+  '/menu-board': typeof MenuBoardRoute
 }
 
 export interface FileRouteTypes {
@@ -143,7 +143,7 @@ export interface FileRouteTypes {
     | '/manager-employee'
     | '/manager-inventory'
     | '/manager-price'
-    | '/menu_board'
+    | '/menu-board'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -151,7 +151,7 @@ export interface FileRouteTypes {
     | '/manager-employee'
     | '/manager-inventory'
     | '/manager-price'
-    | '/menu_board'
+    | '/menu-board'
   id:
     | '__root__'
     | '/'
@@ -159,7 +159,7 @@ export interface FileRouteTypes {
     | '/manager-employee'
     | '/manager-inventory'
     | '/manager-price'
-    | '/menu_board'
+    | '/menu-board'
   fileRoutesById: FileRoutesById
 }
 
@@ -169,7 +169,7 @@ export interface RootRouteChildren {
   ManagerEmployeeRoute: typeof ManagerEmployeeRoute
   ManagerInventoryRoute: typeof ManagerInventoryRoute
   ManagerPriceRoute: typeof ManagerPriceRoute
-  MenuboardRoute: typeof MenuboardRoute
+  MenuBoardRoute: typeof MenuBoardRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -178,7 +178,7 @@ const rootRouteChildren: RootRouteChildren = {
   ManagerEmployeeRoute: ManagerEmployeeRoute,
   ManagerInventoryRoute: ManagerInventoryRoute,
   ManagerPriceRoute: ManagerPriceRoute,
-  MenuboardRoute: MenuboardRoute,
+  MenuBoardRoute: MenuBoardRoute,
 }
 
 export const routeTree = rootRoute
@@ -196,7 +196,7 @@ export const routeTree = rootRoute
         "/manager-employee",
         "/manager-inventory",
         "/manager-price",
-        "/menu_board"
+        "/menu-board"
       ]
     },
     "/": {
@@ -205,8 +205,17 @@ export const routeTree = rootRoute
     "/about": {
       "filePath": "about.tsx"
     },
-    "/menu_board": {
-      "filePath": "menu_board.tsx"
+    "/manager-employee": {
+      "filePath": "manager-employee.tsx"
+    },
+    "/manager-inventory": {
+      "filePath": "manager-inventory.tsx"
+    },
+    "/manager-price": {
+      "filePath": "manager-price.tsx"
+    },
+    "/menu-board": {
+      "filePath": "menu-board.tsx"
     }
   }
 }
