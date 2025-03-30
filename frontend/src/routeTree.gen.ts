@@ -11,15 +11,15 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as MenuboardImport } from './routes/menu_board'
+import { Route as MenuBoardImport } from './routes/menu-board'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
 
 // Create/Update Routes
 
-const MenuboardRoute = MenuboardImport.update({
-  id: '/menu_board',
-  path: '/menu_board',
+const MenuBoardRoute = MenuBoardImport.update({
+  id: '/menu-board',
+  path: '/menu-board',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -53,11 +53,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutImport
       parentRoute: typeof rootRoute
     }
-    '/menu_board': {
-      id: '/menu_board'
-      path: '/menu_board'
-      fullPath: '/menu_board'
-      preLoaderRoute: typeof MenuboardImport
+    '/menu-board': {
+      id: '/menu-board'
+      path: '/menu-board'
+      fullPath: '/menu-board'
+      preLoaderRoute: typeof MenuBoardImport
       parentRoute: typeof rootRoute
     }
   }
@@ -68,41 +68,41 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/menu_board': typeof MenuboardRoute
+  '/menu-board': typeof MenuBoardRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/menu_board': typeof MenuboardRoute
+  '/menu-board': typeof MenuBoardRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/menu_board': typeof MenuboardRoute
+  '/menu-board': typeof MenuBoardRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/menu_board'
+  fullPaths: '/' | '/about' | '/menu-board'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/menu_board'
-  id: '__root__' | '/' | '/about' | '/menu_board'
+  to: '/' | '/about' | '/menu-board'
+  id: '__root__' | '/' | '/about' | '/menu-board'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  MenuboardRoute: typeof MenuboardRoute
+  MenuBoardRoute: typeof MenuBoardRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  MenuboardRoute: MenuboardRoute,
+  MenuBoardRoute: MenuBoardRoute,
 }
 
 export const routeTree = rootRoute
@@ -117,7 +117,7 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/about",
-        "/menu_board"
+        "/menu-board"
       ]
     },
     "/": {
@@ -126,8 +126,8 @@ export const routeTree = rootRoute
     "/about": {
       "filePath": "about.tsx"
     },
-    "/menu_board": {
-      "filePath": "menu_board.tsx"
+    "/menu-board": {
+      "filePath": "menu-board.tsx"
     }
   }
 }
