@@ -35,6 +35,12 @@ app.get("/api/products", (req, res) => {
     });
 });
 
+app.get("/api/employee", (req, res) => {
+    pool.query("SELECT * from employee;").then((query_res) => {
+        res.json(query_res.rows);
+    });
+});
+
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server is running on port ${PORT}`);
 });
