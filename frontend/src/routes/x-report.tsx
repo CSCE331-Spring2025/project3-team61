@@ -21,7 +21,7 @@ function XReportPage() {
   const summary = data.length > 0
     ? data.reduce((acc, row) => {
         return {
-          total_orders: acc.total_orders + row.total_orders,
+          total_orders: acc.total_orders + Number(row.total_orders),
           total_sales: acc.total_sales + row.total_sales,
           cash_sales: acc.cash_sales + row.cash_sales,
           card_sales: acc.card_sales + row.card_sales,
