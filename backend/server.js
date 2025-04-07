@@ -35,16 +35,21 @@ app.get("/api/products", (req, res) => {
     });
 });
 
-// Returns:
-// {
-//     "fruit_tea": ["Lemon Tea", "Peach Tea"],
-//     "herbal_tea": ["Mint Tea", "Chamomile Tea"]
-// }
 app.get("/api/products-by-category", (req, res) => {
-    pool.query("SELECT product_type, json_agg(name) AS products FROM product GROUP BY product_type;").then((query_res) => {
+    pool.query("SELECT json_build_object(product_type, json_agg(name)) AS placeholder FROM product GROUP BY product_type;").then((query_res) => {
         res.json(query_res.rows);
     });
 });
+    // {
+    // "placeholder": {
+    //   "ice_cream": [
+    //     "Skibidi Ice Cream",
+    //     "Strawberry Ice Cream",
+    //     "Luke Conrain Ice Cream",
+    //     "Vanilla Ice Cream",
+    //     "Chocolate Ice Cream"
+    //   ]
+    // }
 
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server is running on port ${PORT}`);
