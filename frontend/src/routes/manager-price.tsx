@@ -71,7 +71,6 @@ interface Product {
                 {category.replace("_", " ")}
               </h2>
               <div className="border rounded-lg p-4 shadow-sm bg-white">
-                <ul>
                   {filteredProducts.map((product) => (
                     <div key={product.id} className="flex justify-between p-2 border-b">
                       <span>{product.name}</span>
@@ -84,7 +83,6 @@ interface Product {
                       </button>
                     </div>
                   ))}
-                </ul>
               </div>
             </div>
           );

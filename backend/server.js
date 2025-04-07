@@ -35,6 +35,12 @@ app.get("/api/products", (req, res) => {
     });
 });
 
+app.get("/api/employee", (req, res) => {
+    pool.query("SELECT * from employee;").then((query_res) => {
+        res.json(query_res.rows);
+    });
+});
+
 app.get("/api/products-by-category", (req, res) => {
     pool.query("SELECT json_build_object(product_type, json_agg(name)) AS placeholder FROM product GROUP BY product_type;").then((query_res) => {
         res.json(query_res.rows);

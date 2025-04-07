@@ -64,14 +64,13 @@ interface Product {
       <h1 className="text-3xl font-bold mb-8">Manager Inventory</h1>
         {categories.map((category) => {
           const filteredProducts = products.filter((p) => p.product_type === category);
-          
+
           return (
             <div key={category} className="mb-6">
               <h2 className="text-xl font-semibold capitalize mb-2">
                 {category.replace("_", " ")}
               </h2>
               <div className="border rounded-lg p-4 shadow-sm bg-white">
-                <ul>
                   {filteredProducts.map((product) => (
                     <div key={product.id} className="flex justify-between p-2 border-b">
                       <span>{product.name}</span>
@@ -84,7 +83,6 @@ interface Product {
                       </button>
                     </div>
                   ))}
-                </ul>
               </div>
             </div>
           );
