@@ -15,25 +15,10 @@ export const Route = createRootRoute({
                     Menu Board
                 </Link>
                 <Link to="/manager-nav" className="[&.active]:font-bold">
-                    Manager Navigation
-                </Link>
-                <Link to="/x-report" className="[&.active]:font-bold">
-                    X-Report
-                </Link>
-                <Link to="/z-report" className="[&.active]:font-bold">
-                    Z-Report
+                    Manager
                 </Link>
                 <Link to="/customer" className="[&.active]:font-bold">
                     Customer
-                </Link>
-                <Link to="/manager-inventory">
-                    Manager Inventory
-                </Link>
-                <Link to="/manager-price">
-                    Manager Price
-                </Link>
-                <Link to="/manager-employee">
-                    Manager Employee
                 </Link>
             </div>
             <hr />
