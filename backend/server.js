@@ -35,17 +35,16 @@ app.get("/api/products", (req, res) => {
     });
 });
 
+// Returns:
+// {
+//     "fruit_tea": ["Lemon Tea", "Peach Tea"],
+//     "herbal_tea": ["Mint Tea", "Chamomile Tea"]
+// }
 app.get("/api/products-by-category", (req, res) => {
-    pool.query("SELECT product_type, STRING_AGG(product.name, ', ') AS products FROM product GROUP BY product_type;").then((query_res) => {
+    pool.query("SELECT product_type, json_agg(name) AS products FROM product GROUP BY product_type;").then((query_res) => {
         res.json(query_res.rows);
     });
 });
-
-// Returns:
-// [
-//     { "product_type": "fruit_tea", "products": "Lemon Tea, Peach Tea" },
-//     { "product_type": "herbal_tea", "products": "Mint Tea, Chamomile Tea" }
-// ]
 
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server is running on port ${PORT}`);
