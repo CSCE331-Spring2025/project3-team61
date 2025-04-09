@@ -41,14 +41,12 @@ app.get("/api/employee", (req, res) => {
     });
 });
 
-// Returns:
-// {
-//     "fruit_tea": ["Lemon Tea", "Peach Tea"],
-//     "herbal_tea": ["Mint Tea", "Chamomile Tea"]
-// }
 app.get("/api/products-by-category", (req, res) => {
-    pool.query("SELECT product_type, json_agg(name) AS products FROM product GROUP BY product_type;").then((query_res) => {
-        res.json(query_res.rows);
+    pool.query(
+        "SELECT json_object_agg(product_type, names) AS product_data FROM ( SELECT product_type, json_agg(name) AS names FROM product GROUP BY product_type) AS subquery;"
+    ).then((query_res) => {
+        const data = query_res.rows[0].product_data;
+        res.json(data);
     });
 });
 
