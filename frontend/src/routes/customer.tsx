@@ -173,9 +173,14 @@ function CustomerPage() {
                     onClick={() => openModal(product)}
                     className="bg-white p-4 rounded-lg shadow hover:shadow-md transition"
                   >
-                    <div className="h-24 bg-gray-200 rounded mb-2 flex items-center justify-center text-gray-500">
-                      Image
-                    </div>
+                      <div className="w-full aspect-[3/4] bg-white rounded mb-2 overflow-hidden flex items-center justify-center">
+                      <img
+                      src={getProductImage(product.name)}
+                      alt={product.name}
+                      className="max-h-full max-w-full object-contain"
+                      />
+                      </div>
+
                     <div className="text-lg font-semibold">{product.name}</div>
                     <div className="text-sm text-gray-500">
                       {centsToDollars(product.price)}
@@ -288,6 +293,36 @@ function CustomerPage() {
     </div>
   );
 }
+    function getProductImage(name: string): string {
+    const images: Record<string, string> = {
+    "Classic Milk Tea": "/classic_milk_tea.png",
+    "Fresh Taro Milk": "/taro_tea.png",
+    "Vanilla Ice Cream": "/vanilla.png",
+    "Matcha Fresh Milk": "/matcha.png",
+    "Mocha Ice Blended" : "/mocha-tea.png",
+    "Chocolate Ice Cream": "/chocolate.png",
+    "Strawberry Ice Cream": "/strawberry.png",
+    "Earl Grey Tea": "/earl.png",
+    "Jasmine Green Tea": "/jasmine.png",
+    "Okinawa Milk Tea": "/okinawa.png",
+    "Mango Fruit Tea": "/mango-tea.png",
+    "Strawberry Fruit Tea": "/strawberry-tea.png",
+    "Caramel Ice Blended" : "/caramel-blended.png",
+    "Lemon Tea Mojito" : "/lemon-moj.png",
+    "Passionfruit Tea Mojito" : "/passion-moj.png",
+    "Black Tea Crema" : "/black-crema.png",
+    "Oolong Crema": "/oolong.png",
+    "Bottled Water" : "/water.png",
+    "Canned Soda" : "/soda.png",
+    "Limited Edition Tea" : "/limited.png",
+    "Pearl Topping" : "/pearl.png"
+
+    // Add more as needed...
+    };
+
+    return images[name] || "/default.png"; // fallback image
+    }   
+
 
 function OptionButtons({
   options,
