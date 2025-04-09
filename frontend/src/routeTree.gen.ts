@@ -14,6 +14,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as ZReportImport } from './routes/z-report'
 import { Route as XReportImport } from './routes/x-report'
 import { Route as MenuBoardImport } from './routes/menu-board'
+import { Route as ManagerSalesImport } from './routes/manager-sales'
 import { Route as ManagerPriceImport } from './routes/manager-price'
 import { Route as ManagerNavImport } from './routes/manager-nav'
 import { Route as ManagerInventoryImport } from './routes/manager-inventory'
@@ -39,6 +40,12 @@ const XReportRoute = XReportImport.update({
 const MenuBoardRoute = MenuBoardImport.update({
   id: '/menu-board',
   path: '/menu-board',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ManagerSalesRoute = ManagerSalesImport.update({
+  id: '/manager-sales',
+  path: '/manager-sales',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -137,6 +144,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManagerPriceImport
       parentRoute: typeof rootRoute
     }
+    '/manager-sales': {
+      id: '/manager-sales'
+      path: '/manager-sales'
+      fullPath: '/manager-sales'
+      preLoaderRoute: typeof ManagerSalesImport
+      parentRoute: typeof rootRoute
+    }
     '/menu-board': {
       id: '/menu-board'
       path: '/menu-board'
@@ -171,6 +185,7 @@ export interface FileRoutesByFullPath {
   '/manager-inventory': typeof ManagerInventoryRoute
   '/manager-nav': typeof ManagerNavRoute
   '/manager-price': typeof ManagerPriceRoute
+  '/manager-sales': typeof ManagerSalesRoute
   '/menu-board': typeof MenuBoardRoute
   '/x-report': typeof XReportRoute
   '/z-report': typeof ZReportRoute
@@ -184,6 +199,7 @@ export interface FileRoutesByTo {
   '/manager-inventory': typeof ManagerInventoryRoute
   '/manager-nav': typeof ManagerNavRoute
   '/manager-price': typeof ManagerPriceRoute
+  '/manager-sales': typeof ManagerSalesRoute
   '/menu-board': typeof MenuBoardRoute
   '/x-report': typeof XReportRoute
   '/z-report': typeof ZReportRoute
@@ -198,6 +214,7 @@ export interface FileRoutesById {
   '/manager-inventory': typeof ManagerInventoryRoute
   '/manager-nav': typeof ManagerNavRoute
   '/manager-price': typeof ManagerPriceRoute
+  '/manager-sales': typeof ManagerSalesRoute
   '/menu-board': typeof MenuBoardRoute
   '/x-report': typeof XReportRoute
   '/z-report': typeof ZReportRoute
@@ -213,6 +230,7 @@ export interface FileRouteTypes {
     | '/manager-inventory'
     | '/manager-nav'
     | '/manager-price'
+    | '/manager-sales'
     | '/menu-board'
     | '/x-report'
     | '/z-report'
@@ -225,6 +243,7 @@ export interface FileRouteTypes {
     | '/manager-inventory'
     | '/manager-nav'
     | '/manager-price'
+    | '/manager-sales'
     | '/menu-board'
     | '/x-report'
     | '/z-report'
@@ -237,6 +256,7 @@ export interface FileRouteTypes {
     | '/manager-inventory'
     | '/manager-nav'
     | '/manager-price'
+    | '/manager-sales'
     | '/menu-board'
     | '/x-report'
     | '/z-report'
@@ -251,6 +271,7 @@ export interface RootRouteChildren {
   ManagerInventoryRoute: typeof ManagerInventoryRoute
   ManagerNavRoute: typeof ManagerNavRoute
   ManagerPriceRoute: typeof ManagerPriceRoute
+  ManagerSalesRoute: typeof ManagerSalesRoute
   MenuBoardRoute: typeof MenuBoardRoute
   XReportRoute: typeof XReportRoute
   ZReportRoute: typeof ZReportRoute
@@ -264,6 +285,7 @@ const rootRouteChildren: RootRouteChildren = {
   ManagerInventoryRoute: ManagerInventoryRoute,
   ManagerNavRoute: ManagerNavRoute,
   ManagerPriceRoute: ManagerPriceRoute,
+  ManagerSalesRoute: ManagerSalesRoute,
   MenuBoardRoute: MenuBoardRoute,
   XReportRoute: XReportRoute,
   ZReportRoute: ZReportRoute,
@@ -286,6 +308,7 @@ export const routeTree = rootRoute
         "/manager-inventory",
         "/manager-nav",
         "/manager-price",
+        "/manager-sales",
         "/menu-board",
         "/x-report",
         "/z-report"
@@ -311,6 +334,9 @@ export const routeTree = rootRoute
     },
     "/manager-price": {
       "filePath": "manager-price.tsx"
+    },
+    "/manager-sales": {
+      "filePath": "manager-sales.tsx"
     },
     "/menu-board": {
       "filePath": "menu-board.tsx"

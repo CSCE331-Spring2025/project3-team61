@@ -19,7 +19,7 @@ function RouteComponent() {
     { label: "X-Report", icon: <LineChart size={20} />, path: "/x-report" },
     { label: "Z-Report", icon: <FileText size={20} />, path: "/z-report" },
     { label: "Product Usage Report", icon: <FileBarChart2 size={20} />, path: "/z-report" }, // placeholder
-    { label: "Sales Report", icon: <BarChart3 size={20} />, path: "/z-report" }, // placeholder
+    { label: "Sales Report", icon: <BarChart3 size={20} />, path: "/manager-sales" }, 
   ];
 
   return (

@@ -150,6 +150,40 @@ app.get("/api/z-report", async (req, res) => {
     }
 });
 
+app.get("/api/sales-report", async (req, res) => {
+    const { start, end } = req.query;
+  
+    if (!start || !end) {
+      return res.status(400).json({ error: "Missing start or end date" });
+    }
+  
+    try {
+      const result = await pool.query(`
+        SELECT 
+          p.name AS menu_item, 
+          COUNT(DISTINCT t.id) AS total_orders, 
+          SUM(ti.subtotal) AS total_sales
+        FROM product p
+        JOIN transaction_item ti ON p.id = ti.product_id
+        JOIN transaction t ON t.id = ti.transaction_id
+        WHERE t.time BETWEEN $1 AND $2
+        GROUP BY p.name
+        ORDER BY p.name;
+      `, [start, end]);
+  
+      const formatted = result.rows.map(row => ({
+        menu_item: row.menu_item,
+        total_orders: parseInt(row.total_orders),
+        total_sales: parseFloat(row.total_sales) / 100,
+      }));
+  
+      res.json(formatted);
+    } catch (err) {
+      console.error("Sales Report Error:", err);
+      res.status(500).json({ error: "Failed to fetch sales report" });
+    }
+  });  
+
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server is running on port ${PORT}`);
 });
