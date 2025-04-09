@@ -15,6 +15,7 @@ import { Route as ZReportImport } from './routes/z-report'
 import { Route as XReportImport } from './routes/x-report'
 import { Route as MenuBoardImport } from './routes/menu-board'
 import { Route as ManagerSalesImport } from './routes/manager-sales'
+import { Route as ManagerProductUsageImport } from './routes/manager-product-usage'
 import { Route as ManagerPriceImport } from './routes/manager-price'
 import { Route as ManagerNavImport } from './routes/manager-nav'
 import { Route as ManagerInventoryImport } from './routes/manager-inventory'
@@ -46,6 +47,12 @@ const MenuBoardRoute = MenuBoardImport.update({
 const ManagerSalesRoute = ManagerSalesImport.update({
   id: '/manager-sales',
   path: '/manager-sales',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ManagerProductUsageRoute = ManagerProductUsageImport.update({
+  id: '/manager-product-usage',
+  path: '/manager-product-usage',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -144,6 +151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManagerPriceImport
       parentRoute: typeof rootRoute
     }
+    '/manager-product-usage': {
+      id: '/manager-product-usage'
+      path: '/manager-product-usage'
+      fullPath: '/manager-product-usage'
+      preLoaderRoute: typeof ManagerProductUsageImport
+      parentRoute: typeof rootRoute
+    }
     '/manager-sales': {
       id: '/manager-sales'
       path: '/manager-sales'
@@ -185,6 +199,7 @@ export interface FileRoutesByFullPath {
   '/manager-inventory': typeof ManagerInventoryRoute
   '/manager-nav': typeof ManagerNavRoute
   '/manager-price': typeof ManagerPriceRoute
+  '/manager-product-usage': typeof ManagerProductUsageRoute
   '/manager-sales': typeof ManagerSalesRoute
   '/menu-board': typeof MenuBoardRoute
   '/x-report': typeof XReportRoute
@@ -199,6 +214,7 @@ export interface FileRoutesByTo {
   '/manager-inventory': typeof ManagerInventoryRoute
   '/manager-nav': typeof ManagerNavRoute
   '/manager-price': typeof ManagerPriceRoute
+  '/manager-product-usage': typeof ManagerProductUsageRoute
   '/manager-sales': typeof ManagerSalesRoute
   '/menu-board': typeof MenuBoardRoute
   '/x-report': typeof XReportRoute
@@ -214,6 +230,7 @@ export interface FileRoutesById {
   '/manager-inventory': typeof ManagerInventoryRoute
   '/manager-nav': typeof ManagerNavRoute
   '/manager-price': typeof ManagerPriceRoute
+  '/manager-product-usage': typeof ManagerProductUsageRoute
   '/manager-sales': typeof ManagerSalesRoute
   '/menu-board': typeof MenuBoardRoute
   '/x-report': typeof XReportRoute
@@ -230,6 +247,7 @@ export interface FileRouteTypes {
     | '/manager-inventory'
     | '/manager-nav'
     | '/manager-price'
+    | '/manager-product-usage'
     | '/manager-sales'
     | '/menu-board'
     | '/x-report'
@@ -243,6 +261,7 @@ export interface FileRouteTypes {
     | '/manager-inventory'
     | '/manager-nav'
     | '/manager-price'
+    | '/manager-product-usage'
     | '/manager-sales'
     | '/menu-board'
     | '/x-report'
@@ -256,6 +275,7 @@ export interface FileRouteTypes {
     | '/manager-inventory'
     | '/manager-nav'
     | '/manager-price'
+    | '/manager-product-usage'
     | '/manager-sales'
     | '/menu-board'
     | '/x-report'
@@ -271,6 +291,7 @@ export interface RootRouteChildren {
   ManagerInventoryRoute: typeof ManagerInventoryRoute
   ManagerNavRoute: typeof ManagerNavRoute
   ManagerPriceRoute: typeof ManagerPriceRoute
+  ManagerProductUsageRoute: typeof ManagerProductUsageRoute
   ManagerSalesRoute: typeof ManagerSalesRoute
   MenuBoardRoute: typeof MenuBoardRoute
   XReportRoute: typeof XReportRoute
@@ -285,6 +306,7 @@ const rootRouteChildren: RootRouteChildren = {
   ManagerInventoryRoute: ManagerInventoryRoute,
   ManagerNavRoute: ManagerNavRoute,
   ManagerPriceRoute: ManagerPriceRoute,
+  ManagerProductUsageRoute: ManagerProductUsageRoute,
   ManagerSalesRoute: ManagerSalesRoute,
   MenuBoardRoute: MenuBoardRoute,
   XReportRoute: XReportRoute,
@@ -308,6 +330,7 @@ export const routeTree = rootRoute
         "/manager-inventory",
         "/manager-nav",
         "/manager-price",
+        "/manager-product-usage",
         "/manager-sales",
         "/menu-board",
         "/x-report",
@@ -334,6 +357,9 @@ export const routeTree = rootRoute
     },
     "/manager-price": {
       "filePath": "manager-price.tsx"
+    },
+    "/manager-product-usage": {
+      "filePath": "manager-product-usage.tsx"
     },
     "/manager-sales": {
       "filePath": "manager-sales.tsx"
