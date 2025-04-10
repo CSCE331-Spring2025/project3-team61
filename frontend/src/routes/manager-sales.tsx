@@ -37,7 +37,7 @@ function SalesReportPage() {
   const [reportData, setReportData] = useState<SalesItem[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  
+
   // Advanced filtering options
   const [viewMode, setViewMode] = useState<"table" | "chart" | "dashboard">("dashboard");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -65,10 +65,17 @@ function SalesReportPage() {
     fetchCategories();
   }, []);
 
-  // FIXME: Fetch list of categories, API call
   const fetchCategories = async () => {
-    setCategories(["Beverages", "Entrees", "Appetizers", "Desserts", "Specials"]);
+    try {
+      const res = await fetch("/api/products-by-category");
+      const data = await res.json(); // { fruit_tea: [...], milk_tea: [...], ... }
+      setCategories(Object.keys(data));
+    } catch (err) {
+      console.error("Failed to fetch categories", err);
+      setCategories([]);
+    }
   };
+
 
   const fetchSalesReport = async () => {
     setError("");
@@ -78,13 +85,13 @@ function SalesReportPage() {
       const res = await fetch(`/api/sales-report?start=${startDate}&end=${endDate}&category=${categoryFilter}`);
       const data = await res.json();
       setReportData(data);
-      
+
       // Calculate summary metrics
       if (data.length > 0) {
         const totalSales = data.reduce((sum: number, item: SalesItem) => sum + item.total_sales, 0);
         const totalOrders = data.reduce((sum: number, item: SalesItem) => sum + item.total_orders, 0);
         const topSellingItem = [...data].sort((a, b) => b.total_orders - a.total_orders)[0]?.menu_item || "";
-        
+
         setSummaryMetrics({
           totalSales,
           totalOrders,
@@ -93,7 +100,7 @@ function SalesReportPage() {
           salesGrowth: 0, // This would be calculated with comparison data
         });
       }
-      
+
       // If comparison is enabled, fetch previous period data
       if (comparisonPeriod) {
         fetchComparisonData();
@@ -110,31 +117,31 @@ function SalesReportPage() {
     const currentStart = new Date(startDate);
     const currentEnd = new Date(endDate);
     const daysDiff = Math.floor((currentEnd.getTime() - currentStart.getTime()) / (1000 * 3600 * 24));
-    
+
     const prevEnd = new Date(currentStart);
     prevEnd.setDate(prevEnd.getDate() - 1);
-    
+
     const prevStart = new Date(prevEnd);
     prevStart.setDate(prevStart.getDate() - daysDiff);
-    
+
     const formatDate = (date: Date) => {
       return date.toISOString().split('T')[0];
     };
-    
+
     try {
       const res = await fetch(`/api/sales-report?start=${formatDate(prevStart)}&end=${formatDate(prevEnd)}`);
       const data = await res.json();
       // setComparisonData(data);
-      
+
       // Calculate growth rate if we have both current and previous data
       if (data.length > 0 && reportData.length > 0) {
         const prevTotalSales = data.reduce((sum: number, item: SalesItem) => sum + item.total_sales, 0);
         const currentTotalSales = summaryMetrics.totalSales;
-        
-        const growthRate = prevTotalSales > 0 
-          ? ((currentTotalSales - prevTotalSales) / prevTotalSales) * 100 
+
+        const growthRate = prevTotalSales > 0
+          ? ((currentTotalSales - prevTotalSales) / prevTotalSales) * 100
           : 0;
-        
+
         setSummaryMetrics(prev => ({
           ...prev,
           salesGrowth: growthRate
@@ -148,25 +155,25 @@ function SalesReportPage() {
   // Apply filters and sorting to the data
   const getFilteredData = () => {
     let filtered = [...reportData];
-    
+
     // Apply category filter
     if (categoryFilter !== "all") {
       filtered = filtered.filter(item => item.category === categoryFilter);
     }
-    
+
     // Apply search filter
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
-      filtered = filtered.filter(item => 
+      filtered = filtered.filter(item =>
         item.menu_item.toLowerCase().includes(search)
       );
     }
-    
-    // Apply sorting - FIXED TypeScript error here
+
+    // Apply sorting 
     filtered.sort((a, b) => {
       let valueA: string | number;
       let valueB: string | number;
-      
+
       if (sortBy === "sales") {
         valueA = a.total_sales;
         valueB = b.total_sales;
@@ -177,28 +184,28 @@ function SalesReportPage() {
         valueA = a.menu_item;
         valueB = b.menu_item;
       }
-      
+
       if (typeof valueA === "string" && typeof valueB === "string") {
-        return sortDirection === "asc" 
-          ? valueA.localeCompare(valueB) 
+        return sortDirection === "asc"
+          ? valueA.localeCompare(valueB)
           : valueB.localeCompare(valueA);
       } else {
         // Convert to numbers for numeric comparison
         const numA = typeof valueA === "number" ? valueA : Number(valueA);
         const numB = typeof valueB === "number" ? valueB : Number(valueB);
-        
-        return sortDirection === "asc" 
-          ? numA - numB 
+
+        return sortDirection === "asc"
+          ? numA - numB
           : numB - numA;
       }
     });
-    
+
     return filtered;
   };
 
   const downloadCSV = () => {
     if (reportData.length === 0) return;
-    
+
     const filteredData = getFilteredData();
     const headers = ["Menu Item", "Category", "Total Orders", "Total Sales", "Average Order Value"];
     const rows = filteredData.map(row => [
@@ -208,7 +215,7 @@ function SalesReportPage() {
       row.total_sales.toFixed(2),
       (row.total_sales / row.total_orders).toFixed(2)
     ]);
-    
+
     const csv = [headers, ...rows].map(e => e.join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const link = document.createElement("a");
@@ -220,7 +227,7 @@ function SalesReportPage() {
   const handlePredefinedDate = (period: string) => {
     const today = new Date();
     let start = new Date();
-    
+
     switch (period) {
       case "today":
         start = new Date(today);
@@ -245,7 +252,7 @@ function SalesReportPage() {
       default:
         break;
     }
-    
+
     setStartDate(start.toISOString().split('T')[0]);
     setEndDate(today.toISOString().split('T')[0]);
   };
@@ -256,13 +263,13 @@ function SalesReportPage() {
     const topItems = [...filtered]
       .sort((a, b) => b.total_sales - a.total_sales)
       .slice(0, topItemsCount);
-      
+
     return topItems;
   };
 
   // For pie chart data
   const getCategoryData = () => {
-    return reportData.reduce((acc: Array<{name: string, value: number}>, item) => {
+    return reportData.reduce((acc: Array<{ name: string, value: number }>, item) => {
       const existingCategory = acc.find(c => c.name === (item.category || 'Uncategorized'));
       if (existingCategory) {
         existingCategory.value += item.total_sales;
@@ -290,21 +297,21 @@ function SalesReportPage() {
     <div className="max-w-6xl mx-auto p-6">
       <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center">
         <h1 className="text-3xl font-bold">Sales Performance Analytics</h1>
-        
+
         <div className="flex gap-2 mt-4 sm:mt-0">
-          <button 
+          <button
             onClick={() => setViewMode("table")}
             className={`px-3 py-1 rounded text-sm ${viewMode === "table" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
           >
             Table View
           </button>
-          <button 
+          <button
             onClick={() => setViewMode("chart")}
             className={`px-3 py-1 rounded text-sm ${viewMode === "chart" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
           >
             Charts
           </button>
-          <button 
+          <button
             onClick={() => setViewMode("dashboard")}
             className={`px-3 py-1 rounded text-sm ${viewMode === "dashboard" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
           >
@@ -327,12 +334,12 @@ function SalesReportPage() {
               </p>
             )}
           </div>
-          
+
           <div className="bg-white p-4 rounded shadow">
             <p className="text-gray-500 text-sm">Total Orders</p>
             <p className="text-2xl font-bold">{summaryMetrics.totalOrders}</p>
           </div>
-          
+
           <div className="bg-white p-4 rounded shadow">
             <p className="text-gray-500 text-sm">Average Order Value</p>
             <p className="text-2xl font-bold">
@@ -348,38 +355,38 @@ function SalesReportPage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
             <div className="flex items-center gap-2">
-              <input 
-                type="date" 
-                value={startDate} 
-                onChange={(e) => setStartDate(e.target.value)} 
-                className="border rounded px-2 py-1 text-sm" 
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="border rounded px-2 py-1 text-sm"
               />
               <span>to</span>
-              <input 
-                type="date" 
-                value={endDate} 
-                onChange={(e) => setEndDate(e.target.value)} 
-                className="border rounded px-2 py-1 text-sm" 
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="border rounded px-2 py-1 text-sm"
               />
             </div>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Quick Select</label>
             <div className="flex gap-1">
-              <button 
+              <button
                 onClick={() => handlePredefinedDate("today")}
                 className="bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded text-xs"
               >
                 Today
               </button>
-              <button 
+              <button
                 onClick={() => handlePredefinedDate("week")}
                 className="bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded text-xs"
               >
                 Last 7 Days
               </button>
-              <button 
+              <button
                 onClick={() => handlePredefinedDate("month")}
                 className="bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded text-xs"
               >
@@ -387,25 +394,25 @@ function SalesReportPage() {
               </button>
             </div>
           </div>
-          
+
           <div className="flex items-end">
             <div className="flex items-center gap-2">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 id="compareToggle"
-                checked={comparisonPeriod} 
-                onChange={() => setComparisonPeriod(!comparisonPeriod)} 
+                checked={comparisonPeriod}
+                onChange={() => setComparisonPeriod(!comparisonPeriod)}
               />
               <label htmlFor="compareToggle" className="text-sm">Compare to previous period</label>
             </div>
           </div>
         </div>
-        
+
         <div className="flex flex-wrap gap-4 items-end">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-            <select 
-              value={categoryFilter} 
+            <select
+              value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="border rounded px-2 py-1"
             >
@@ -415,12 +422,12 @@ function SalesReportPage() {
               ))}
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
             <div className="flex">
-              <select 
-                value={sortBy} 
+              <select
+                value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="border rounded-l px-2 py-1"
               >
@@ -428,7 +435,7 @@ function SalesReportPage() {
                 <option value="orders">Order Count</option>
                 <option value="name">Item Name</option>
               </select>
-              <button 
+              <button
                 onClick={() => setSortDirection(sortDirection === "asc" ? "desc" : "asc")}
                 className="border border-l-0 rounded-r px-2 py-1"
               >
@@ -436,25 +443,25 @@ function SalesReportPage() {
               </button>
             </div>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
-            <input 
-              type="text" 
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)} 
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search items..."
               className="border rounded px-2 py-1"
             />
           </div>
-          
+
           <button
             onClick={fetchSalesReport}
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
             {loading ? "Loading..." : "Generate Report"}
           </button>
-          
+
           {reportData.length > 0 && (
             <button
               onClick={downloadCSV}
@@ -476,7 +483,7 @@ function SalesReportPage() {
             <h2 className="text-lg font-medium mb-4">Top {topItemsCount} Items by Sales</h2>
             <div className="flex items-center gap-2 mb-2">
               <label className="text-sm">Show top:</label>
-              <select 
+              <select
                 value={topItemsCount}
                 onChange={(e) => setTopItemsCount(Number(e.target.value))}
                 className="border rounded text-sm p-1"
@@ -495,7 +502,7 @@ function SalesReportPage() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="menu_item" angle={-45} textAnchor="end" height={70} />
                   <YAxis />
-                  <Tooltip 
+                  <Tooltip
                     formatter={(value: any, name: any) => {
                       if (name === "total_sales") {
                         return [formatCurrency(Number(value)), "Sales"];
@@ -525,7 +532,7 @@ function SalesReportPage() {
                     fill="#8884d8"
                     dataKey="value"
                     nameKey="name"
-                    label={({name, percent}: {name: string, percent: number}) => 
+                    label={({ name, percent }: { name: string, percent: number }) =>
                       `${name}: ${(percent * 100).toFixed(0)}%`
                     }
                   >
@@ -538,7 +545,7 @@ function SalesReportPage() {
               </ResponsiveContainer>
             </div>
           </div>
-          
+
           {/* Top Items Table */}
           <div className="bg-white p-4 rounded shadow lg:col-span-2">
             <h2 className="text-lg font-medium mb-4">Top Selling Items</h2>
@@ -586,7 +593,7 @@ function SalesReportPage() {
                 <XAxis dataKey="menu_item" angle={-45} textAnchor="end" height={100} />
                 <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
                 <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
-                <Tooltip 
+                <Tooltip
                   formatter={(value: any, name: any) => {
                     if (name === "total_sales") {
                       return [formatCurrency(Number(value)), "Sales"];

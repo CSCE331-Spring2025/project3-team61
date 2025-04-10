@@ -152,37 +152,39 @@ app.get("/api/z-report", async (req, res) => {
 
 app.get("/api/sales-report", async (req, res) => {
     const { start, end } = req.query;
-
+  
     if (!start || !end) {
-        return res.status(400).json({ error: "Missing start or end date" });
+      return res.status(400).json({ error: "Missing start or end date" });
     }
-
+  
     try {
-        const result = await pool.query(`
+      const result = await pool.query(`
         SELECT 
           p.name AS menu_item, 
+          p.product_type AS category,
           COUNT(DISTINCT t.id) AS total_orders, 
           SUM(ti.subtotal) AS total_sales
         FROM product p
         JOIN transaction_item ti ON p.id = ti.product_id
         JOIN transaction t ON t.id = ti.transaction_id
         WHERE t.time BETWEEN $1 AND $2
-        GROUP BY p.name
+        GROUP BY p.name, p.product_type
         ORDER BY p.name;
       `, [start, end]);
-
-        const formatted = result.rows.map(row => ({
-            menu_item: row.menu_item,
-            total_orders: parseInt(row.total_orders),
-            total_sales: parseFloat(row.total_sales) / 100,
-        }));
-
-        res.json(formatted);
+  
+      const formatted = result.rows.map(row => ({
+        menu_item: row.menu_item,
+        category: row.category,
+        total_orders: parseInt(row.total_orders),
+        total_sales: parseFloat(row.total_sales) / 100,
+      }));
+  
+      res.json(formatted);
     } catch (err) {
-        console.error("Sales Report Error:", err);
-        res.status(500).json({ error: "Failed to fetch sales report" });
+      console.error("Sales Report Error:", err);
+      res.status(500).json({ error: "Failed to fetch sales report" });
     }
-});
+  });  
 
 // Product Usage API endpoints
 
@@ -212,7 +214,7 @@ app.get("/api/product-usage", async (req, res) => {
               product.name AS product_name,
               COUNT(transaction_item.product_id) AS transaction_count,
               SUM(transaction_item.quantity) AS total_quantity,
-              SUM(transaction_item.price * transaction_item.quantity) AS total_revenue
+              SUM(transaction_item.subtotal) AS total_revenue
             FROM transaction_item
             JOIN transaction ON transaction_item.transaction_id = transaction.id
             JOIN product ON product.id = transaction_item.product_id
@@ -226,7 +228,7 @@ app.get("/api/product-usage", async (req, res) => {
               product.name AS product_name,
               COUNT(transaction_item.product_id) AS transaction_count,
               SUM(transaction_item.quantity) AS total_quantity,
-              SUM(transaction_item.price * transaction_item.quantity) AS total_revenue
+              SUM(transaction_item.subtotal) AS total_revenue
             FROM transaction_item
             JOIN transaction ON transaction_item.transaction_id = transaction.id
             JOIN product ON product.id = transaction_item.product_id
@@ -392,8 +394,8 @@ app.get("/api/product-usage/summary", async (req, res) => {
               COUNT(DISTINCT transaction.id) AS total_transactions,
               COUNT(DISTINCT product.id) AS unique_products,
               SUM(transaction_item.quantity) AS total_items_sold,
-              SUM(transaction_item.price * transaction_item.quantity) AS total_revenue,
-              AVG(transaction_item.price * transaction_item.quantity) AS avg_transaction_value
+              SUM(transaction_item.subtotal) AS total_revenue
+              AVG(transaction_item.subtotal) AS avg_transaction_value
             FROM transaction_item
             JOIN transaction ON transaction_item.transaction_id = transaction.id
             JOIN product ON product.id = transaction_item.product_id
@@ -440,20 +442,20 @@ app.get("/api/product-usage/categories", async (req, res) => {
 
     try {
         const query = `
-            SELECT 
-              product_category.name AS category_name,
-              COUNT(transaction_item.product_id) AS transaction_count,
-              SUM(transaction_item.quantity) AS total_quantity,
-              SUM(transaction_item.price * transaction_item.quantity) AS total_revenue
-            FROM transaction_item
-            JOIN transaction ON transaction_item.transaction_id = transaction.id
-            JOIN product ON product.id = transaction_item.product_id
-            JOIN product_category ON product.category_id = product_category.id
-            WHERE DATE(transaction.time) BETWEEN $1 AND $2
-              AND EXTRACT(HOUR FROM transaction.time) BETWEEN $3 AND $4
-            GROUP BY product_category.name
-            ORDER BY transaction_count DESC;
-        `;
+        SELECT 
+          product.product_type AS category_name,
+          COUNT(transaction_item.product_id) AS transaction_count,
+          SUM(transaction_item.quantity) AS total_quantity,
+          SUM(transaction_item.subtotal) AS total_revenue
+        FROM transaction_item
+        JOIN transaction ON transaction_item.transaction_id = transaction.id
+        JOIN product ON product.id = transaction_item.product_id
+        WHERE DATE(transaction.time) BETWEEN $1 AND $2
+          AND EXTRACT(HOUR FROM transaction.time) BETWEEN $3 AND $4
+        GROUP BY product.product_type
+        ORDER BY transaction_count DESC;
+      `;
+      
         
         const result = await pool.query(query, [startDate, endDate, startHour, endHour]);
         
@@ -462,7 +464,8 @@ app.get("/api/product-usage/categories", async (req, res) => {
             count: parseInt(row.transaction_count),
             quantity: parseInt(row.total_quantity || 0),
             revenue: parseFloat(row.total_revenue || 0)
-        }));
+          }));
+          
         
         res.json(formatted);
     } catch (err) {
