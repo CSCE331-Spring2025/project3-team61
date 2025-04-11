@@ -120,10 +120,9 @@ interface Product {
 
 <Modal
         isOpen={modalIsOpen}
-        
+
         onRequestClose={() => setModalIsOpen(false)}
         className="flex justify-center flex-col content-center flex-wrap h-screen"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
       >
         <div className="mt-10 w-150 bg-white rounded-md">
           <div className="p-4 border-b-4 border-gray-200">

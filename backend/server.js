@@ -74,6 +74,51 @@ app.get("/api/employee", (req, res) => {
     });
 });
 
+// add employee
+app.post("/api/employee", async (req, res) => {
+    const { name, admin } = req.body;
+
+    if (!name || typeof admin !== "boolean") {
+        return res.status(400).json({ success: false, message: "Invalid name or admin status" });
+    }
+
+        const result = await pool.query(
+            "INSERT INTO employee (name, admin) VALUES ($1, $2) RETURNING *",
+            [name, admin]
+        );
+
+        res.status(201).json({ success: true, employee: result.rows[0] });
+
+});
+
+//change admin stauts
+app.put("/api/employee/:id", async (req, res) => {
+    const { id } = req.params;
+    const { admin } = req.body;
+  
+    if (typeof admin !== "boolean") {
+      return res.status(400).json({ success: false, message: "Invalid admid type" });
+    }
+  
+      await pool.query("UPDATE employee SET admin = $1 WHERE id = $2", [admin, id]);
+      res.status(200).json({ success: true });
+
+  });
+
+// delete emplyee
+app.delete("/api/employee/:id", async (req, res) => {
+    const employeeId = req.params.id;
+
+        const result = await pool.query("DELETE FROM employee WHERE id = $1 RETURNING *", [employeeId]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ success: false, message: "Employee does not exist" });
+        }
+
+        res.status(200).json({ success: true });
+
+});
+
 app.get("/api/products-by-category", (req, res) => {
     pool.query(
         "SELECT json_object_agg(product_type, names) AS product_data FROM ( SELECT product_type, json_agg(name) AS names FROM product GROUP BY product_type) AS subquery;"

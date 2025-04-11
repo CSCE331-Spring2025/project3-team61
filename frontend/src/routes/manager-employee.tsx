@@ -18,19 +18,66 @@ interface Employee {
  //const handleEditButton: 
 
 function ManagerEmployee() {
-         const [employees, setEmployees] = useState<Employee[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [adminCheckbox, setAdminCheckbox] = useState(false);
   
-            useEffect(() => {
-                const getEmployees = () => {
-                    fetch("/api/employee")
-                        .then((res) => res.json())
-                        .then((res_json) => {
-                            setEmployees(res_json);
-                        });
-                };
-        
-                getEmployees();
-            }, []);
+  useEffect(() => {
+    const getEmployees = () => {
+      fetch("/api/employee")
+        .then((res) => res.json())
+        .then((res_json) => {
+          setEmployees(res_json);
+        });
+};
+
+      getEmployees();
+  }, []);
+
+  const openModal = (employee: Employee) => {
+  setSelectedEmployee(employee);
+  setAdminCheckbox(employee.admin);
+  setModalOpen(true);
+};
+
+  const closeModal = () => {
+    setSelectedEmployee(null);
+    setModalOpen(false);
+  };
+
+  const handleSaveAdminChange = async () => {
+    if (!selectedEmployee) return;
+  
+    const res = await fetch(`/api/employee/${selectedEmployee.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ admin: adminCheckbox }),
+    });
+  
+    if (res.ok) {
+      setEmployees((prev) =>
+        prev.map((emp) =>
+          emp.id === selectedEmployee.id ? { ...emp, admin: adminCheckbox } : emp
+        )
+      );
+      closeModal();
+    }
+  };
+  
+  const handleDeleteEmployee = async () => {
+    if (!selectedEmployee) return;
+  
+    const res = await fetch(`/api/employee/${selectedEmployee.id}`, {
+      method: "DELETE",
+    });
+  
+    if (res.ok) {
+      setEmployees((prev) => prev.filter((emp) => emp.id !== selectedEmployee.id));
+      closeModal();
+    }
+  };
+
 
   const admins = employees.filter((e) => e.admin);
   const non_admins = employees.filter((e) => !e.admin);
@@ -49,13 +96,48 @@ function ManagerEmployee() {
                 <div key={employee.id} className="flex justify-between p-2 border-b">
                   <span>{employee.name}</span>
                   <button className="bg-gray-100 p-2 rounded"
-                  //onClick={() => handleEditButton(product)}
+                  onClick={() => openModal(employee)}
                   >
                     Edit Employee
                   </button>
                 </div>
               ))}
         </div>
+        <Modal isOpen={modalOpen} onRequestClose={closeModal} className="bg-white p-6 rounded shadow-lg w-96 mx-auto mt-20">
+          <h2 className="font-bold text-xl">Edit Employee</h2>
+          <div className="flex flex-col gap-4">
+            <p className="text-gray-400 font-bold">{selectedEmployee?.name}</p>
+
+            <label className="flex justify-end space-x-2">
+              <input
+                type="checkbox"
+                checked={adminCheckbox}
+                onChange={(e) => setAdminCheckbox(e.target.checked)}
+                className="form-checkbox h-5 w-5 text-slate-700"
+              />
+              Admin
+            </label>
+
+            <button
+              onClick={handleSaveAdminChange}
+              className="bg-slate-700 text-white px-4 py-2 rounded"
+            >
+              Save Changes
+            </button>
+            <button
+              onClick={handleDeleteEmployee}
+              className="bg-gray-300 text-black px-4 py-2 rounded"
+            >
+              Delete Employee
+            </button>
+            <button
+              onClick={closeModal}
+              className="bg-gray-300 text-black px-4 py-2 rounded"
+            >
+              Cancel
+            </button>
+          </div>
+        </Modal>
       </div>
 
       {// non-admin
@@ -67,7 +149,7 @@ function ManagerEmployee() {
                 <div key={employee.id} className="flex justify-between p-2 border-b">
                   <span>{employee.name}</span>
                   <button className="bg-gray-100 p-2 rounded"
-                  //onClick={() => handleEditButton(product)}
+                  onClick={() => openModal(employee)}
                   >
                     Edit Employee
                   </button>
@@ -75,6 +157,41 @@ function ManagerEmployee() {
               ))}
         </div>
       </div>
+      <Modal isOpen={modalOpen} onRequestClose={closeModal} className="bg-white p-6 rounded shadow-lg w-96 mx-auto mt-20">
+          <h2 className="font-bold text-xl">Edit Employee</h2>
+          <div className="flex flex-col gap-4">
+            <p className="text-gray-400 font-bold">{selectedEmployee?.name}</p>
+
+            <label className="flex justify-end space-x-2">
+              <input
+                type="checkbox"
+                checked={adminCheckbox}
+                onChange={(e) => setAdminCheckbox(e.target.checked)}
+                className="form-checkbox h-5 w-5 text-slate-700"
+              />
+              Admin
+            </label>
+
+            <button
+              onClick={handleSaveAdminChange}
+              className="bg-slate-700 text-white px-4 py-2 rounded"
+            >
+              Save Changes
+            </button>
+            <button
+              onClick={handleDeleteEmployee}
+              className="bg-gray-300 text-black px-4 py-2 rounded"
+            >
+              Delete Employee
+            </button>
+            <button
+              onClick={closeModal}
+              className="bg-gray-300 text-black px-4 py-2 rounded"
+            >
+              Cancel
+            </button>
+          </div>
+        </Modal>
     </div>
   );
 }
