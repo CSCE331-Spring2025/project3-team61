@@ -35,6 +35,39 @@ app.get("/api/products", (req, res) => {
     });
 });
 
+app.put("/api/products/:id/inventory", async (req, res) => {
+    const productId = req.params.id;
+    const { inventory } = req.body;
+
+    try {
+        await pool.query(
+            "UPDATE product SET inventory = $1 WHERE id = $2",
+            [inventory, productId]
+        );
+        res.status(200).json({ success: true });
+
+    } catch (err) {
+        console.error("Error occured updating inventory:", err);
+        res.status(500).json({ success: false, message: "Failure to update inventory :(" });
+    }
+});
+
+app.put("/api/products/:id/price", async (req, res) => {
+    const productId = req.params.id;
+    const { price } = req.body;
+
+    if (typeof price !== "number" || price < 0) {
+        return res.status(400).json({ success: false, message: "Invalid Price " });
+    }
+        const result = await pool.query(
+            "UPDATE product SET price = $1 WHERE id = $2 RETURNING *",
+            [price, productId]
+        );
+
+        res.status(200).json({ success: true, product: result.rows[0] });
+    
+});
+
 app.get("/api/employee", (req, res) => {
     pool.query("SELECT * from employee;").then((query_res) => {
         res.json(query_res.rows);

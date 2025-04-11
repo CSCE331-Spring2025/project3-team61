@@ -27,11 +27,41 @@ interface Product {
   inventory: number;
  }
 
- // TODO add functionality to "Edit Inventory" Button
- //const handleEditButton: 
-
  function ManagerInventory() {
-       const [products, setProducts] = useState<Product[]>([]);
+      const [products, setProducts] = useState<Product[]>([]);
+      const [product_selected, setProductSelected] = useState<Product | null>(null);
+      const [newInventory, setNewInventory] = useState<number>(0);
+      const [modalIsOpen, setModalIsOpen] = useState<boolean>(false);
+
+      const handleEditButton = (product: Product) => {
+        setProductSelected(product);
+
+        setNewInventory(product.inventory);
+        setModalIsOpen(true);
+      };
+
+      const handleInvUpdate = async () => {
+        if (!product_selected) return;
+      
+        const response = await fetch(`/api/products/${product_selected.id}/inventory`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ inventory: newInventory }),
+        });
+      
+        if (response.ok) {
+          setProducts((prev) =>
+            prev.map((p) =>
+              p.id === product_selected.id ? { ...p, inventory: newInventory } : p
+            )
+          );
+          setModalIsOpen(false);
+        } else {
+          alert("Failure to update inventory");
+        }
+      };
 
           useEffect(() => {
               const getProducts = () => {
@@ -77,7 +107,7 @@ interface Product {
                       <span className="font-bold text-right flex-1 p-2">Inventory: {product.inventory}</span>
                       <button
                         className="bg-gray-100 p-2 rounded"
-                       //onClick={() => handleEditButton(product)}
+                       onClick={() => handleEditButton(product)}
                       >
                         Edit Inventory
                       </button>
@@ -87,6 +117,47 @@ interface Product {
             </div>
           );
         })}
+
+<Modal
+  isOpen={modalIsOpen}
+  onRequestClose={() => setModalIsOpen(false)}
+  className="flex justify-center flex-col content-center flex-wrap h-screen"
+  overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+>
+  <div className="mt-10 w-150 bg-white rounded-md">
+    <div className="p-4 border-b-4 border-gray-200">
+      <div className="flex justify-between">
+        <h2 className="font-bold text-xl">Edit Inventory</h2>
+        <button onClick={() => setModalIsOpen(false)}>Close</button>
+      </div>
+      <div className="text-gray-400 font-bold">{product_selected?.name}</div>
+    </div>
+    <div className="p-4">
+      <div className="font-bold mb-1">New Inventory</div>
+      <input
+        type="number"
+        value={newInventory}
+        onChange={(e) => setNewInventory(Number(e.target.value))}
+        className="border-2 border-gray-300 w-full rounded px-2 py-1 mb-4"
+      />
+      <div className="flex justify-end space-x-2">
+        <button
+          onClick={() => setModalIsOpen(false)}
+          className="bg-gray-300 text-black px-4 py-2 rounded"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleInvUpdate}
+          className="bg-slate-700 text-white px-4 py-2 rounded"
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+</Modal>
+
       </div>
       );
   
