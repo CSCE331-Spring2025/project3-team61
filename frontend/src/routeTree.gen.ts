@@ -20,8 +20,10 @@ import { Route as ManagerPriceImport } from './routes/manager-price'
 import { Route as ManagerNavImport } from './routes/manager-nav'
 import { Route as ManagerInventoryImport } from './routes/manager-inventory'
 import { Route as ManagerEmployeeImport } from './routes/manager-employee'
+import { Route as LoginImport } from './routes/login'
+import { Route as EmployeeNavImport } from './routes/employee-nav'
 import { Route as CustomerImport } from './routes/customer'
-import { Route as AboutImport } from './routes/about'
+import { Route as CashierImport } from './routes/cashier'
 import { Route as IndexImport } from './routes/index'
 
 // Create/Update Routes
@@ -80,15 +82,27 @@ const ManagerEmployeeRoute = ManagerEmployeeImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const LoginRoute = LoginImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const EmployeeNavRoute = EmployeeNavImport.update({
+  id: '/employee-nav',
+  path: '/employee-nav',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const CustomerRoute = CustomerImport.update({
   id: '/customer',
   path: '/customer',
   getParentRoute: () => rootRoute,
 } as any)
 
-const AboutRoute = AboutImport.update({
-  id: '/about',
-  path: '/about',
+const CashierRoute = CashierImport.update({
+  id: '/cashier',
+  path: '/cashier',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -109,11 +123,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutImport
+    '/cashier': {
+      id: '/cashier'
+      path: '/cashier'
+      fullPath: '/cashier'
+      preLoaderRoute: typeof CashierImport
       parentRoute: typeof rootRoute
     }
     '/customer': {
@@ -121,6 +135,20 @@ declare module '@tanstack/react-router' {
       path: '/customer'
       fullPath: '/customer'
       preLoaderRoute: typeof CustomerImport
+      parentRoute: typeof rootRoute
+    }
+    '/employee-nav': {
+      id: '/employee-nav'
+      path: '/employee-nav'
+      fullPath: '/employee-nav'
+      preLoaderRoute: typeof EmployeeNavImport
+      parentRoute: typeof rootRoute
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginImport
       parentRoute: typeof rootRoute
     }
     '/manager-employee': {
@@ -193,8 +221,10 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
+  '/cashier': typeof CashierRoute
   '/customer': typeof CustomerRoute
+  '/employee-nav': typeof EmployeeNavRoute
+  '/login': typeof LoginRoute
   '/manager-employee': typeof ManagerEmployeeRoute
   '/manager-inventory': typeof ManagerInventoryRoute
   '/manager-nav': typeof ManagerNavRoute
@@ -208,8 +238,10 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
+  '/cashier': typeof CashierRoute
   '/customer': typeof CustomerRoute
+  '/employee-nav': typeof EmployeeNavRoute
+  '/login': typeof LoginRoute
   '/manager-employee': typeof ManagerEmployeeRoute
   '/manager-inventory': typeof ManagerInventoryRoute
   '/manager-nav': typeof ManagerNavRoute
@@ -224,8 +256,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
+  '/cashier': typeof CashierRoute
   '/customer': typeof CustomerRoute
+  '/employee-nav': typeof EmployeeNavRoute
+  '/login': typeof LoginRoute
   '/manager-employee': typeof ManagerEmployeeRoute
   '/manager-inventory': typeof ManagerInventoryRoute
   '/manager-nav': typeof ManagerNavRoute
@@ -241,8 +275,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/about'
+    | '/cashier'
     | '/customer'
+    | '/employee-nav'
+    | '/login'
     | '/manager-employee'
     | '/manager-inventory'
     | '/manager-nav'
@@ -255,8 +291,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/about'
+    | '/cashier'
     | '/customer'
+    | '/employee-nav'
+    | '/login'
     | '/manager-employee'
     | '/manager-inventory'
     | '/manager-nav'
@@ -269,8 +307,10 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/about'
+    | '/cashier'
     | '/customer'
+    | '/employee-nav'
+    | '/login'
     | '/manager-employee'
     | '/manager-inventory'
     | '/manager-nav'
@@ -285,8 +325,10 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
+  CashierRoute: typeof CashierRoute
   CustomerRoute: typeof CustomerRoute
+  EmployeeNavRoute: typeof EmployeeNavRoute
+  LoginRoute: typeof LoginRoute
   ManagerEmployeeRoute: typeof ManagerEmployeeRoute
   ManagerInventoryRoute: typeof ManagerInventoryRoute
   ManagerNavRoute: typeof ManagerNavRoute
@@ -300,8 +342,10 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
+  CashierRoute: CashierRoute,
   CustomerRoute: CustomerRoute,
+  EmployeeNavRoute: EmployeeNavRoute,
+  LoginRoute: LoginRoute,
   ManagerEmployeeRoute: ManagerEmployeeRoute,
   ManagerInventoryRoute: ManagerInventoryRoute,
   ManagerNavRoute: ManagerNavRoute,
@@ -324,8 +368,10 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/about",
+        "/cashier",
         "/customer",
+        "/employee-nav",
+        "/login",
         "/manager-employee",
         "/manager-inventory",
         "/manager-nav",
@@ -340,11 +386,17 @@ export const routeTree = rootRoute
     "/": {
       "filePath": "index.tsx"
     },
-    "/about": {
-      "filePath": "about.tsx"
+    "/cashier": {
+      "filePath": "cashier.tsx"
     },
     "/customer": {
       "filePath": "customer.tsx"
+    },
+    "/employee-nav": {
+      "filePath": "employee-nav.tsx"
+    },
+    "/login": {
+      "filePath": "login.tsx"
     },
     "/manager-employee": {
       "filePath": "manager-employee.tsx"
