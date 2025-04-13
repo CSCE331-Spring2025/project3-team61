@@ -22,7 +22,11 @@ function ManagerEmployee() {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [adminCheckbox, setAdminCheckbox] = useState(false);
-  
+
+  const [newEmployeeModalOpen, setNewEmployeeModal] = useState(false);
+  const [newEmployeeName, setNewEmployeeName] = useState('');
+  const [newEmployeeAdmin, setNewEmployeeAdmin] = useState(false);
+
   useEffect(() => {
     const getEmployees = () => {
       fetch("/api/employee")
@@ -78,6 +82,27 @@ function ManagerEmployee() {
     }
   };
 
+  const handleAddEmployee = async () => {
+    if (!newEmployeeName.trim()) return;
+
+    const res = await fetch("/api/employee", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newEmployeeName, admin: newEmployeeAdmin }),
+    });
+
+    if (res.ok) {
+      const { employee } = await res.json();
+      setEmployees((prev) => [...prev, employee]);
+      closeAddModal();
+    }
+  };
+
+  const closeAddModal = () => { // [NEW]
+    setNewEmployeeName("");
+    setNewEmployeeAdmin(false);
+    setNewEmployeeModal(false);
+  };
 
   const admins = employees.filter((e) => e.admin);
   const non_admins = employees.filter((e) => !e.admin);
@@ -192,6 +217,47 @@ function ManagerEmployee() {
             </button>
           </div>
         </Modal>
+        
+        {//add employee
+        }
+        <Modal isOpen={newEmployeeModalOpen} onRequestClose={closeAddModal} className="bg-white p-6 rounded shadow-lg w-96 mx-auto mt-20">
+        <h2 className="font-bold text-xl">Add Employee</h2>
+        <div className="flex flex-col gap-4">
+          <input
+            type="text"
+            placeholder="Employee Name"
+            value={newEmployeeName}
+            onChange={(e) => setNewEmployeeName(e.target.value)}
+            className="border px-4 py-2 rounded"
+          />
+
+          <label className="flex justify-end space-x-2">
+            <input
+              type="checkbox"
+              checked={newEmployeeAdmin}
+              onChange={(e) => setNewEmployeeAdmin(e.target.checked)}
+              className="form-checkbox h-5 w-5 text-slate-700"
+            />
+            Admin
+          </label>
+
+          <button onClick={handleAddEmployee} className="bg-slate-700 text-white px-4 py-2 rounded">
+            Add Employee
+          </button>
+          <button onClick={closeAddModal} className="bg-gray-300 text-black px-4 py-2 rounded">
+            Cancel
+          </button>
+        </div>
+      </Modal>
+
+        <div className="flex justify-center mt-10">
+          <button
+            className="bg-slate-600 text-white px-6 py-3 rounded"
+            onClick={() => setNewEmployeeModal(true)}
+          >
+            Add Employee
+          </button>
+        </div>
     </div>
   );
 }
