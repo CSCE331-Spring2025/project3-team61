@@ -90,13 +90,122 @@ app.get("/api/products", (_, res) => {
     });
 });
 
-app.get("/api/employee", (_, res) => {
+app.put("/api/products/:id/inventory", async (req, res) => {
+    const productId = req.params.id;
+    const { inventory } = req.body;
+
+    try {
+        await pool.query("UPDATE product SET inventory = $1 WHERE id = $2", [
+            inventory,
+            productId,
+        ]);
+        res.status(200).json({ success: true });
+    } catch (err) {
+        console.error("Error occured updating inventory:", err);
+        res.status(500).json({
+            success: false,
+            message: "Failure to update inventory :(",
+        });
+    }
+});
+
+app.put("/api/products/:id/price", async (req, res) => {
+    const productId = req.params.id;
+    const { price } = req.body;
+
+    if (typeof price !== "number" || price < 0) {
+        return res
+            .status(400)
+            .json({ success: false, message: "Invalid Price " });
+    }
+    const result = await pool.query(
+        "UPDATE product SET price = $1 WHERE id = $2 RETURNING *",
+        [price, productId],
+    );
+
+    res.status(200).json({ success: true, product: result.rows[0] });
+});
+
+app.post("/api/products", async (req, res) => {
+    const { name, product_type, inventory, price } = req.body;
+
+    if (!name || !product_type || inventory === undefined) {
+        return res.status(400).json({ error: "Missing required info" });
+    }
+
+    const newProduct = await db.products.create({
+        data: {
+            name,
+            product_type,
+            inventory,
+            price,
+        },
+    });
+
+    res.status(201).json(newProduct);
+});
+
+app.get("/api/employee", (req, res) => {
     pool.query("SELECT * from employee;").then((query_res) => {
         res.json(query_res.rows);
     });
 });
 
-app.get("/api/products-by-category", (_, res) => {
+// add employee
+app.post("/api/employee", async (req, res) => {
+    const { name, admin } = req.body;
+
+    if (!name || typeof admin !== "boolean") {
+        return res
+            .status(400)
+            .json({ success: false, message: "Invalid name or admin status" });
+    }
+
+    const result = await pool.query(
+        "INSERT INTO employee (name, admin) VALUES ($1, $2) RETURNING *",
+        [name, admin],
+    );
+
+    res.status(201).json({ success: true, employee: result.rows[0] });
+});
+
+//change admin stauts
+app.put("/api/employee/:id", async (req, res) => {
+    const { id } = req.params;
+    const { admin } = req.body;
+
+    if (typeof admin !== "boolean") {
+        return res
+            .status(400)
+            .json({ success: false, message: "Invalid admid type" });
+    }
+
+    await pool.query("UPDATE employee SET admin = $1 WHERE id = $2", [
+        admin,
+        id,
+    ]);
+    res.status(200).json({ success: true });
+});
+
+// delete emplyee
+app.delete("/api/employee/:id", async (req, res) => {
+    const employeeId = req.params.id;
+
+    const result = await pool.query(
+        "DELETE FROM employee WHERE id = $1 RETURNING *",
+        [employeeId],
+    );
+
+    if (result.rowCount === 0) {
+        return res
+            .status(404)
+            .json({ success: false, message: "Employee does not exist" });
+    }
+
+    res.status(200).json({ success: true });
+});
+
+app.get("/api/products-by-category", (req, res) => {
     pool.query(
         "SELECT json_object_agg(product_type, names) AS product_data FROM ( SELECT product_type, json_agg(name) AS names FROM product GROUP BY product_type) AS subquery;",
     ).then((query_res) => {
@@ -578,7 +687,7 @@ app.get("/logout", (req, res, next) => {
 });
 
 app.get("/login", (_, res) => {
-    res.redirect("/")
+    res.redirect("/");
 });
 
 app.get("/customer", (_, res) => {
