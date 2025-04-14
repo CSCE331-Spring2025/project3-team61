@@ -37,8 +37,24 @@ passport.use(
             clientSecret: process.env.OAUTH_CLIENT_SECRET,
             callbackURL: "/auth/google/callback",
         },
-        (accessToken, refreshToken, profile, done) => {
-            return done(null, profile);
+        async (_, __, profile, done) => {
+            const email = profile._json.email;
+            try {
+                const queryRes = await pool.query(
+                    "SELECT name, admin FROM employee WHERE email = $1;",
+                    [email],
+                );
+
+                if (queryRes.rows.length === 0) {
+                    return done(null, false, {
+                        message: "Email not authorized",
+                    });
+                }
+
+                return done(null, profile);
+            } catch (err) {
+                return done(err);
+            }
         },
     ),
 );
@@ -78,7 +94,10 @@ app.get(
 
 app.get(
     "/auth/google/callback",
-    passport.authenticate("google", { failureRedirect: "/about" }),
+    passport.authenticate("google", {
+        failureRedirect: "/unauthorized",
+        failureMessage: true,
+    }),
     (_, res) => {
         res.redirect("/employee-nav");
     },
@@ -676,6 +695,10 @@ app.get("/api/product-usage/categories", async (req, res) => {
             details: err.message,
         });
     }
+});
+
+app.get("/unauthorized", (req, res) => {
+    res.send(req.session.message?.[0] || "Unauthorized");
 });
 
 app.get("/logout", (req, res, next) => {
