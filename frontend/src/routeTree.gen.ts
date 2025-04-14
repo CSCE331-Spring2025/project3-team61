@@ -14,12 +14,16 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as ZReportImport } from './routes/z-report'
 import { Route as XReportImport } from './routes/x-report'
 import { Route as MenuBoardImport } from './routes/menu-board'
+import { Route as ManagerSalesImport } from './routes/manager-sales'
+import { Route as ManagerProductUsageImport } from './routes/manager-product-usage'
 import { Route as ManagerPriceImport } from './routes/manager-price'
 import { Route as ManagerNavImport } from './routes/manager-nav'
 import { Route as ManagerInventoryImport } from './routes/manager-inventory'
 import { Route as ManagerEmployeeImport } from './routes/manager-employee'
+import { Route as LoginImport } from './routes/login'
+import { Route as EmployeeNavImport } from './routes/employee-nav'
 import { Route as CustomerImport } from './routes/customer'
-import { Route as AboutImport } from './routes/about'
+import { Route as CashierImport } from './routes/cashier'
 import { Route as IndexImport } from './routes/index'
 
 // Create/Update Routes
@@ -39,6 +43,18 @@ const XReportRoute = XReportImport.update({
 const MenuBoardRoute = MenuBoardImport.update({
   id: '/menu-board',
   path: '/menu-board',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ManagerSalesRoute = ManagerSalesImport.update({
+  id: '/manager-sales',
+  path: '/manager-sales',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ManagerProductUsageRoute = ManagerProductUsageImport.update({
+  id: '/manager-product-usage',
+  path: '/manager-product-usage',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -66,15 +82,27 @@ const ManagerEmployeeRoute = ManagerEmployeeImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const LoginRoute = LoginImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const EmployeeNavRoute = EmployeeNavImport.update({
+  id: '/employee-nav',
+  path: '/employee-nav',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const CustomerRoute = CustomerImport.update({
   id: '/customer',
   path: '/customer',
   getParentRoute: () => rootRoute,
 } as any)
 
-const AboutRoute = AboutImport.update({
-  id: '/about',
-  path: '/about',
+const CashierRoute = CashierImport.update({
+  id: '/cashier',
+  path: '/cashier',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -95,11 +123,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutImport
+    '/cashier': {
+      id: '/cashier'
+      path: '/cashier'
+      fullPath: '/cashier'
+      preLoaderRoute: typeof CashierImport
       parentRoute: typeof rootRoute
     }
     '/customer': {
@@ -107,6 +135,20 @@ declare module '@tanstack/react-router' {
       path: '/customer'
       fullPath: '/customer'
       preLoaderRoute: typeof CustomerImport
+      parentRoute: typeof rootRoute
+    }
+    '/employee-nav': {
+      id: '/employee-nav'
+      path: '/employee-nav'
+      fullPath: '/employee-nav'
+      preLoaderRoute: typeof EmployeeNavImport
+      parentRoute: typeof rootRoute
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginImport
       parentRoute: typeof rootRoute
     }
     '/manager-employee': {
@@ -137,6 +179,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManagerPriceImport
       parentRoute: typeof rootRoute
     }
+    '/manager-product-usage': {
+      id: '/manager-product-usage'
+      path: '/manager-product-usage'
+      fullPath: '/manager-product-usage'
+      preLoaderRoute: typeof ManagerProductUsageImport
+      parentRoute: typeof rootRoute
+    }
+    '/manager-sales': {
+      id: '/manager-sales'
+      path: '/manager-sales'
+      fullPath: '/manager-sales'
+      preLoaderRoute: typeof ManagerSalesImport
+      parentRoute: typeof rootRoute
+    }
     '/menu-board': {
       id: '/menu-board'
       path: '/menu-board'
@@ -165,12 +221,16 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
+  '/cashier': typeof CashierRoute
   '/customer': typeof CustomerRoute
+  '/employee-nav': typeof EmployeeNavRoute
+  '/login': typeof LoginRoute
   '/manager-employee': typeof ManagerEmployeeRoute
   '/manager-inventory': typeof ManagerInventoryRoute
   '/manager-nav': typeof ManagerNavRoute
   '/manager-price': typeof ManagerPriceRoute
+  '/manager-product-usage': typeof ManagerProductUsageRoute
+  '/manager-sales': typeof ManagerSalesRoute
   '/menu-board': typeof MenuBoardRoute
   '/x-report': typeof XReportRoute
   '/z-report': typeof ZReportRoute
@@ -178,12 +238,16 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
+  '/cashier': typeof CashierRoute
   '/customer': typeof CustomerRoute
+  '/employee-nav': typeof EmployeeNavRoute
+  '/login': typeof LoginRoute
   '/manager-employee': typeof ManagerEmployeeRoute
   '/manager-inventory': typeof ManagerInventoryRoute
   '/manager-nav': typeof ManagerNavRoute
   '/manager-price': typeof ManagerPriceRoute
+  '/manager-product-usage': typeof ManagerProductUsageRoute
+  '/manager-sales': typeof ManagerSalesRoute
   '/menu-board': typeof MenuBoardRoute
   '/x-report': typeof XReportRoute
   '/z-report': typeof ZReportRoute
@@ -192,12 +256,16 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
+  '/cashier': typeof CashierRoute
   '/customer': typeof CustomerRoute
+  '/employee-nav': typeof EmployeeNavRoute
+  '/login': typeof LoginRoute
   '/manager-employee': typeof ManagerEmployeeRoute
   '/manager-inventory': typeof ManagerInventoryRoute
   '/manager-nav': typeof ManagerNavRoute
   '/manager-price': typeof ManagerPriceRoute
+  '/manager-product-usage': typeof ManagerProductUsageRoute
+  '/manager-sales': typeof ManagerSalesRoute
   '/menu-board': typeof MenuBoardRoute
   '/x-report': typeof XReportRoute
   '/z-report': typeof ZReportRoute
@@ -207,36 +275,48 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/about'
+    | '/cashier'
     | '/customer'
+    | '/employee-nav'
+    | '/login'
     | '/manager-employee'
     | '/manager-inventory'
     | '/manager-nav'
     | '/manager-price'
+    | '/manager-product-usage'
+    | '/manager-sales'
     | '/menu-board'
     | '/x-report'
     | '/z-report'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/about'
+    | '/cashier'
     | '/customer'
+    | '/employee-nav'
+    | '/login'
     | '/manager-employee'
     | '/manager-inventory'
     | '/manager-nav'
     | '/manager-price'
+    | '/manager-product-usage'
+    | '/manager-sales'
     | '/menu-board'
     | '/x-report'
     | '/z-report'
   id:
     | '__root__'
     | '/'
-    | '/about'
+    | '/cashier'
     | '/customer'
+    | '/employee-nav'
+    | '/login'
     | '/manager-employee'
     | '/manager-inventory'
     | '/manager-nav'
     | '/manager-price'
+    | '/manager-product-usage'
+    | '/manager-sales'
     | '/menu-board'
     | '/x-report'
     | '/z-report'
@@ -245,12 +325,16 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
+  CashierRoute: typeof CashierRoute
   CustomerRoute: typeof CustomerRoute
+  EmployeeNavRoute: typeof EmployeeNavRoute
+  LoginRoute: typeof LoginRoute
   ManagerEmployeeRoute: typeof ManagerEmployeeRoute
   ManagerInventoryRoute: typeof ManagerInventoryRoute
   ManagerNavRoute: typeof ManagerNavRoute
   ManagerPriceRoute: typeof ManagerPriceRoute
+  ManagerProductUsageRoute: typeof ManagerProductUsageRoute
+  ManagerSalesRoute: typeof ManagerSalesRoute
   MenuBoardRoute: typeof MenuBoardRoute
   XReportRoute: typeof XReportRoute
   ZReportRoute: typeof ZReportRoute
@@ -258,12 +342,16 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
+  CashierRoute: CashierRoute,
   CustomerRoute: CustomerRoute,
+  EmployeeNavRoute: EmployeeNavRoute,
+  LoginRoute: LoginRoute,
   ManagerEmployeeRoute: ManagerEmployeeRoute,
   ManagerInventoryRoute: ManagerInventoryRoute,
   ManagerNavRoute: ManagerNavRoute,
   ManagerPriceRoute: ManagerPriceRoute,
+  ManagerProductUsageRoute: ManagerProductUsageRoute,
+  ManagerSalesRoute: ManagerSalesRoute,
   MenuBoardRoute: MenuBoardRoute,
   XReportRoute: XReportRoute,
   ZReportRoute: ZReportRoute,
@@ -280,12 +368,16 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/about",
+        "/cashier",
         "/customer",
+        "/employee-nav",
+        "/login",
         "/manager-employee",
         "/manager-inventory",
         "/manager-nav",
         "/manager-price",
+        "/manager-product-usage",
+        "/manager-sales",
         "/menu-board",
         "/x-report",
         "/z-report"
@@ -294,11 +386,17 @@ export const routeTree = rootRoute
     "/": {
       "filePath": "index.tsx"
     },
-    "/about": {
-      "filePath": "about.tsx"
+    "/cashier": {
+      "filePath": "cashier.tsx"
     },
     "/customer": {
       "filePath": "customer.tsx"
+    },
+    "/employee-nav": {
+      "filePath": "employee-nav.tsx"
+    },
+    "/login": {
+      "filePath": "login.tsx"
     },
     "/manager-employee": {
       "filePath": "manager-employee.tsx"
@@ -311,6 +409,12 @@ export const routeTree = rootRoute
     },
     "/manager-price": {
       "filePath": "manager-price.tsx"
+    },
+    "/manager-product-usage": {
+      "filePath": "manager-product-usage.tsx"
+    },
+    "/manager-sales": {
+      "filePath": "manager-sales.tsx"
     },
     "/menu-board": {
       "filePath": "menu-board.tsx"
