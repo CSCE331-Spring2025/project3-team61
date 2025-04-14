@@ -29,7 +29,7 @@ interface Product {
 function MenuBoard() {
   const [products, setProducts] = useState<Product[]>([]);
   const router = useRouter();
-  const [fontSize, setFontSize] = useState(16);
+  // const [fontSize, setFontSize] = useState(16);
 
   const getProducts = () => {
     fetch("/api/products")
@@ -50,12 +50,12 @@ function MenuBoard() {
     getProducts();
   }, []);
 
-  const increaseFontSize = () => {
-    setFontSize((prevSize) => Math.min(prevSize + 2, 24)); // Max font size of 24px
-  }
-  const decreaseFontSize = () => {
-    setFontSize((prevSize) => Math.max(prevSize - 2, 12)); // Min font size of 12px
-  }
+  // const increaseFontSize = () => {
+  //   setFontSize((prevSize) => Math.min(prevSize + 2, 24)); // Max font size of 24px
+  // }
+  // const decreaseFontSize = () => {
+  //   setFontSize((prevSize) => Math.max(prevSize - 2, 12)); // Min font size of 12px
+  // }
 
   const drinkTypes = [
     "milk_tea",
