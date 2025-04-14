@@ -43,7 +43,7 @@ app.get("/api/employee", (req, res) => {
 
 app.get("/api/products-by-category", (req, res) => {
     pool.query(
-        "SELECT json_object_agg(product_type, names) AS product_data FROM ( SELECT product_type, json_agg(name) AS names FROM product GROUP BY product_type) AS subquery;"
+        "SELECT json_object_agg(product_type, product_info) AS product_data FROM (SELECT product_type, json_agg(json_build_object('id', id, 'name', name, 'price', price, 'inventory', inventory, 'product_type', product_type)) AS product_info FROM product GROUP BY product_type) AS subquery;"
     ).then((query_res) => {
         const data = query_res.rows[0].product_data;
         res.json(data);

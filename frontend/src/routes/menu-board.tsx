@@ -22,6 +22,7 @@ interface Product {
   name: string;
   price: number;
   inventory: number;
+  image_url?: string; // Added image URL property
 }
 
 function MenuBoard() {
@@ -68,10 +69,30 @@ function MenuBoard() {
             {/* Popular Items */}
             <div className="col-span-2 row-span-1 bg-white p-4 rounded-md shadow-md">
               <h2 className="text-2xl font-bold mb-4">Popular Items</h2>
-              <div className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {popularItems.map((product) => (
-                  <div key={product.id} className="flex justify-between items-center">
-                    <span className="text-lg font-semibold">{product.name}</span>
+                  <div 
+                    key={product.id} 
+                    className="flex flex-col items-center p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    {product.image_url ? (
+                      <div className="w-24 h-24 mb-2 rounded-full overflow-hidden">
+                        <img 
+                          src={product.image_url} 
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = "/api/placeholder/150/150";
+                            e.currentTarget.alt = "Image not available";
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-24 h-24 mb-2 rounded-full bg-gray-200 flex items-center justify-center">
+                        <span className="text-gray-400">No image</span>
+                      </div>
+                    )}
+                    <span className="text-lg font-semibold text-center">{product.name}</span>
                     <span className="text-lg">{centsToDollars(product.price)}</span>
                   </div>
                 ))}
@@ -83,8 +104,27 @@ function MenuBoard() {
               <h2 className="text-xl font-bold mb-3">All Drinks</h2>
               <div className="space-y-3">
                 {allDrinks.map((product) => (
-                  <div key={product.id} className="flex justify-between items-center">
-                    <span className="font-medium">{product.name}</span>
+                  <div key={product.id} className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      {product.image_url ? (
+                        <div className="w-12 h-12 mr-3 rounded-full overflow-hidden">
+                          <img 
+                            src={product.image_url} 
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = "/api/placeholder/50/50";
+                              e.currentTarget.alt = "Image not available";
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-12 h-12 mr-3 rounded-full bg-gray-200 flex items-center justify-center">
+                          <span className="text-xs text-gray-400">No img</span>
+                        </div>
+                      )}
+                      <span className="font-medium">{product.name}</span>
+                    </div>
                     <span>{centsToDollars(product.price)}</span>
                   </div>
                 ))}
@@ -94,11 +134,28 @@ function MenuBoard() {
             {/* Ice Cream Box */}
             <div className="bg-white p-4 rounded-md shadow-md">
               <h2 className="text-xl font-bold mb-3">Ice Cream</h2>
-              <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
                 {iceCreamItems.map((product) => (
-                  <div key={product.id} className="flex justify-between items-center">
-                    <span className="font-medium">{product.name}</span>
-                    <span>{centsToDollars(product.price)}</span>
+                  <div key={product.id} className="flex flex-col items-center p-2">
+                    {product.image_url ? (
+                      <div className="w-16 h-16 mb-2 rounded-full overflow-hidden">
+                        <img 
+                          src={product.image_url} 
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = "/api/placeholder/80/80";
+                            e.currentTarget.alt = "Image not available";
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 mb-2 rounded-full bg-gray-200 flex items-center justify-center">
+                        <span className="text-xs text-gray-400">No image</span>
+                      </div>
+                    )}
+                    <span className="font-medium text-center text-sm">{product.name}</span>
+                    <span className="text-sm">{centsToDollars(product.price)}</span>
                   </div>
                 ))}
               </div>
@@ -107,11 +164,28 @@ function MenuBoard() {
             {/* Miscellaneous Box */}
             <div className="bg-white p-4 rounded-md shadow-md">
               <h2 className="text-xl font-bold mb-3">Miscellaneous</h2>
-              <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
                 {miscItems.map((product) => (
-                  <div key={product.id} className="flex justify-between items-center">
-                    <span className="font-medium">{product.name}</span>
-                    <span>{centsToDollars(product.price)}</span>
+                  <div key={product.id} className="flex flex-col items-center p-2">
+                    {product.image_url ? (
+                      <div className="w-16 h-16 mb-2 rounded-full overflow-hidden">
+                        <img 
+                          src={product.image_url} 
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = "/api/placeholder/80/80";
+                            e.currentTarget.alt = "Image not available";
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 mb-2 rounded-full bg-gray-200 flex items-center justify-center">
+                        <span className="text-xs text-gray-400">No image</span>
+                      </div>
+                    )}
+                    <span className="font-medium text-center text-sm">{product.name}</span>
+                    <span className="text-sm">{centsToDollars(product.price)}</span>
                   </div>
                 ))}
               </div>
@@ -120,11 +194,33 @@ function MenuBoard() {
             {/* Accessibility */}
             <div className="col-span-3 bg-white p-4 rounded-md shadow-md">
               <h2 className="text-xl font-bold mb-3">Accessibility</h2>
-              <div className="space-y-2">
-                {/* NOTE: Accessibility buttons to be added here */}
-              </div>
+                <div className="grid grid-cols-4 gap-4 text-center">
+                <button 
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                  aria-label="Increase text size"
+                >
+                  Text+
+                </button>
+                <button 
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                  aria-label="Decrease text size"
+                >
+                  Text-
+                </button>
+                <button 
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                  aria-label="High contrast mode"
+                >
+                  Translate
+                </button>
+                <button 
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                  aria-label="Language translation of Text"
+                >
+                  Screen Reader Mode
+                </button>
+                </div>
             </div>
-            
           </div>
         )}
       </div>
