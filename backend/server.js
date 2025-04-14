@@ -68,6 +68,25 @@ app.put("/api/products/:id/price", async (req, res) => {
     
 });
 
+app.post("/api/products", async (req, res) => {
+    const { name, product_type, inventory, price } = req.body;
+  
+    if (!name || !product_type || inventory === undefined) {
+      return res.status(400).json({ error: "Missing required info" });
+    }
+  
+    const newProduct = await db.products.create({
+      data: {
+        name,
+        product_type,
+        inventory,
+        price,
+      },
+    });
+  
+    res.status(201).json(newProduct);
+  });
+
 app.get("/api/employee", (req, res) => {
     pool.query("SELECT * from employee;").then((query_res) => {
         res.json(query_res.rows);
