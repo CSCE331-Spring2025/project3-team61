@@ -26,7 +26,7 @@ function RouteComponent() {
   return (
     <div className="p-6 max-w-4xl mx-auto relative">
       {/* Top-left corner back button */}
-      <BackButton to="/employee-nav" className="absolute top-4 left-4" />
+      <BackButton to="/manager-nav" className="absolute top-6 left-6 z-50" />
 
       <h1 className="text-3xl font-bold mb-8 text-center">Menu (Manager)</h1>
 
