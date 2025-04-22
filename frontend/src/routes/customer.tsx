@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import Modal from "react-modal";
+//import dotenv from "dotenv";
+
 
 export const Route = createFileRoute("/customer")({
   component: CustomerPage,
@@ -43,9 +45,11 @@ function CustomerPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("milk_tea");
   const [tapText, setTapText] = useState("Tap to Start");
 
-  const AZURE_TRANSLATOR_KEY = "BHaJYQxEil5otev9XqMJIe65WcmTnbOuDmhjMeVlCQkh2htEGW4wJQQJ99BDACLArgHXJ3w3AAAbACOGGhqi";
+  //dotenv.config({ path: "../backend/.env" });
+
+  const AZURE_TRANSLATOR_KEY = import.meta.env.VITE_TRANSLATE_KEY;
   const AZURE_ENDPOINT = "https://api.cognitive.microsofttranslator.com/translate?api-version=3.0";
-  const AZURE_REGION = "southcentralus";
+  const AZURE_REGION = import.meta.env.VITE_TRANSLATE_REGION;
 
   const categoryDisplayNames: Record<string, string> = {
     milk_tea: "Milk Tea",
@@ -99,15 +103,18 @@ function CustomerPage() {
       const translated: Record<string, string> = {};
       for (const label of labels) {
         try {
-          const res = await fetch(`${AZURE_ENDPOINT}&to=${language}`, {
-            method: "POST",
-            headers: {
-              "Ocp-Apim-Subscription-Key": AZURE_TRANSLATOR_KEY,
-              "Ocp-Apim-Subscription-Region": AZURE_REGION,
-              "Content-type": "application/json",
-            },
-            body: JSON.stringify([{ Text: label }]),
-          });
+          const res = await fetch(
+            `${AZURE_ENDPOINT}&to=${language}`,
+            {
+              method: "POST",
+              headers: {
+                "Ocp-Apim-Subscription-Key": AZURE_TRANSLATOR_KEY!,
+                "Ocp-Apim-Subscription-Region": AZURE_REGION,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify([{ Text: label }]),
+            }
+          );
           const json = await res.json();
           translated[label] = json?.[0]?.translations?.[0]?.text || label;
         } catch (err) {
