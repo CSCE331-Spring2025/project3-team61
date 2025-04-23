@@ -87,6 +87,8 @@ const PORT = process.env.PORT || 8080;
 
 app.use(express.static("../frontend/dist"));
 
+// Authenticate endpoints
+
 app.get(
     "/auth/google",
     passport.authenticate("google", { scope: ["profile", "email"] }),
@@ -102,6 +104,8 @@ app.get(
         res.redirect("/employee-nav");
     },
 );
+
+// Product Endpoints
 
 app.get("/api/products", (_, res) => {
     pool.query("SELECT * from product;").then((query_res) => {
@@ -162,6 +166,46 @@ app.post("/api/products", async (req, res) => {
     });
 
     res.status(201).json(newProduct);
+});
+
+// Transation endpoint
+// {
+//      employee: int
+//      paymentType: "cash" | "card" | "giftcard"
+//      tip: int
+//      items: [
+//          {
+//              id: int
+//              quantity: int
+//          }
+//      ]
+// }
+app.post("/api/transaction", async (req, res) => {
+    const { employee, paymentType, tip, items } = req.body;
+
+    if (!employee || !paymentType || !tip || !items) {
+        res.status(400).json({
+            error: "Missing requied fields in request body",
+        });
+        return;
+    }
+
+    let products = {};
+
+    try {
+        queryRes = pool.query("SELECT * from product;");
+        queryRows.rows.map((p) => (products[p.id] = p));
+    } catch (err) {
+        res.status(500).send(err);
+        return;
+    }
+
+    const price = items.reduce(
+        (price, item) => price + products[item.id].price * item.quantity,
+        0,
+    );
+
+    console.log("price", price);
 });
 
 app.get("/api/employee", (req, res) => {
@@ -226,7 +270,7 @@ app.delete("/api/employee/:id", async (req, res) => {
 
 app.get("/api/products-by-category", (req, res) => {
     pool.query(
-        "SELECT json_object_agg(product_type, product_info) AS product_data FROM (SELECT product_type, json_agg(json_build_object('id', id, 'name', name, 'price', price, 'inventory', inventory, 'product_type', product_type)) AS product_info FROM product GROUP BY product_type) AS subquery;"
+        "SELECT json_object_agg(product_type, product_info) AS product_data FROM (SELECT product_type, json_agg(json_build_object('id', id, 'name', name, 'price', price, 'inventory', inventory, 'product_type', product_type)) AS product_info FROM product GROUP BY product_type) AS subquery;",
         // "SELECT json_object_agg(product_type, names) AS product_data FROM ( SELECT product_type, json_agg(name) AS names FROM product GROUP BY product_type) AS subquery;",
     ).then((query_res) => {
         const data = query_res.rows[0].product_data;
