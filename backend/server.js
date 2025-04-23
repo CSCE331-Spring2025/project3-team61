@@ -28,6 +28,14 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false },
 });
 
+async function getDrinkInfo(userInput) {
+    const result = await pool.query(
+        `SELECT name, product_type, calories FROM product WHERE LOWER(name) LIKE $1 LIMIT 1`,
+        [`%${userInput.toLowerCase()}%`]
+    );
+    return result.rows[0]; // returns undefined if no match
+}
+
 process.on("SIGINT", () => {
     pool.end();
     console.log("Application successfully shutdown");
@@ -710,12 +718,40 @@ app.post("/api/chat", async (req, res) => {
     }
 
     try {
-        const result = await geminiModel.generateContent([message]);
+        //  Try to find relevant drink info
+        const drink = await getDrinkInfo(message);
+
+        // Gemini prompt
+        let prompt;
+        if (drink) {
+            const { name, product_type, calories } = drink;
+            prompt = `
+  You are a helpful assistant at a boba tea shop. Use the information provided below to answer the customer accurately.
+  
+  Drink Info:
+  - Name: ${name}
+  - Type: ${product_type}
+  - Calories: ${calories} kcal
+  
+  Customer Question: ${message}
+  `;
+        } else {
+            // Fallback to standard prompt if no product match
+            prompt = `
+  You are a helpful assistant at a boba tea shop. Answer the following question:
+  Customer: ${message}
+  `;
+        }
+
+        // Ask Gemini
+        const result = await geminiModel.generateContent([prompt]);
         const reply = result.response.text();
+
+        // Return reply
         res.json({ reply });
     } catch (error) {
-        console.error("Gemini error:", error);
-        res.status(500).json({ error: "Failed to generate Gemini response" });
+        console.error("Gemini /api/chat error:", error);
+        res.status(500).json({ error: "Failed to generate response" });
     }
 });
 
