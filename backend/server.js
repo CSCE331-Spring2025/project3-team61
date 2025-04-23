@@ -28,26 +28,6 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false },
 });
 
-async function getDrinkInfo(userInput) {
-    const result = await pool.query(
-        `SELECT name, product_type, calories FROM product WHERE LOWER(name) LIKE $1 LIMIT 1`,
-        [`%${userInput.toLowerCase()}%`]
-    );
-    return result.rows[0]; // returns undefined if no match
-}
-
-async function getMostPopularProduct() {
-    const result = await pool.query(`
-      SELECT product.name, SUM(transaction_item.quantity) AS total_sold
-      FROM transaction_item
-      JOIN product ON product.id = transaction_item.product_id
-      GROUP BY product.name
-      ORDER BY total_sold DESC
-      LIMIT 1
-    `);
-    return result.rows[0]; // { name: 'Mocha Ice Blended', total_sold: 120 }
-}
-
 process.on("SIGINT", () => {
     pool.end();
     console.log("Application successfully shutdown");
@@ -722,6 +702,7 @@ app.get("/api/product-usage/categories", async (req, res) => {
     }
 });
 
+// Chatbot
 app.post("/api/chat", async (req, res) => {
     const { message } = req.body;
 
@@ -730,61 +711,102 @@ app.post("/api/chat", async (req, res) => {
     }
 
     try {
-        const lowerMsg = message.toLowerCase();
-        let prompt = "";
-        let usedFallback = true;
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const embedder = genAI.getGenerativeModel({ model: "embedding-001" });
+        const queryEmbedding = (await embedder.embedContent(message)).embedding.values;
 
-        // Popularity request
-        if (/(most\s+popular|best\s+(seller|drink)|top\s+drink)/.test(lowerMsg)) {
-            const bestseller = await getMostPopularProduct();
-            if (bestseller) {
-                prompt = `
-  You are a helpful assistant at a bubble tea shop.
+        // Get all product embeddings and metadata
+        const { rows: candidates } = await pool.query(`
+        SELECT id, name, product_type, calories, price, embedding
+        FROM product
+        WHERE embedding IS NOT NULL
+      `);
+
+        // Compute cosine similarity
+        const cosineSim = (a, b) => {
+            const dot = a.reduce((sum, val, i) => sum + val * b[i], 0);
+            const normA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
+            const normB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
+            return dot / (normA * normB);
+        };
+
+        const topMatches = candidates
+            .map(p => ({
+                ...p,
+                similarity: cosineSim(p.embedding, queryEmbedding),
+            }))
+            .sort((a, b) => b.similarity - a.similarity)
+            .slice(0, 3);
+
+        // Get best-selling item
+        const bestsellerRes = await pool.query(`
+        SELECT product.name, SUM(transaction_item.quantity) AS total_sold
+        FROM transaction_item
+        JOIN product ON product.id = transaction_item.product_id
+        GROUP BY product.name
+        ORDER BY total_sold DESC
+        LIMIT 1
+      `);
+        const bestseller = bestsellerRes.rows[0];
+
+        // Get top 3 most expensive items
+        const expensiveRes = await pool.query(`
+        SELECT name, price FROM product
+        ORDER BY price DESC
+        LIMIT 3
+      `);
+        const expensiveItems = expensiveRes.rows
+            .map(p => `${p.name} - $${(p.price / 100).toFixed(2)}`)
+            .join(", ");
+
+        // Get allergen info per product
+        const allergenRes = await pool.query(`
+        SELECT p.name AS product_name, a.name AS allergen
+        FROM product p
+        JOIN product_allergens pa ON pa.product_id = p.id
+        JOIN allergens a ON a.id = pa.allergen_id
+      `);
+        const allergensByProduct = {};
+        for (const row of allergenRes.rows) {
+            if (!allergensByProduct[row.product_name]) allergensByProduct[row.product_name] = [];
+            allergensByProduct[row.product_name].push(row.allergen);
+        }
+        const allergenContext = Object.entries(allergensByProduct)
+            .map(([name, list]) => `- ${name}: ${list.join(", ")}`)
+            .join("\n");
+
+        // Build Gemini prompt
+        const context = `
+  Relevant drinks:
+  ${topMatches.map(p => `- ${p.name} (${p.product_type}, ${p.calories} kcal)`).join("\n")}
   
-  The current most popular drink is: ${bestseller.name}, with ${bestseller.total_sold} units sold.
+  Best-selling drink: ${bestseller.name} (${bestseller.total_sold} sold)
+  
+  Top 3 most expensive drinks: ${expensiveItems}
+  
+  Allergen information:
+  ${allergenContext}
+  `;
+
+        const prompt = `
+  You are a helpful and accurate assistant at a boba tea shop. Use the following product information to answer the customer's question:
+  
+  ${context}
   
   Customer: ${message}
   `;
-                usedFallback = false;
-            }
-        }
 
-        // Nutrition/lookup-based request
-        if (usedFallback) {
-            const drink = await getDrinkInfo(message);
-            if (drink) {
-                const { name, product_type, calories } = drink;
-                prompt = `
-  You are a helpful assistant at a bubble tea shop. Use the following product information to answer the customer's question.
-  
-  Drink Info:
-  - Name: ${name}
-  - Type: ${product_type}
-  - Calories: ${calories} kcal
-  
-  Customer: ${message}
-  `;
-                usedFallback = false;
-            }
-        }
-
-        // General fallback prompt
-        if (usedFallback) {
-            prompt = `
-  You are a friendly assistant at a boba tea shop. Answer the following question clearly and concisely:
-  Customer: ${message}
-  `;
-        }
-
-        // Gemini call
+        const geminiModel = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
         const result = await geminiModel.generateContent([prompt]);
         const reply = result.response.text();
+
         res.json({ reply });
     } catch (error) {
-        console.error("Gemini /api/chat error:", error);
+        console.error("/api/chat error:", error);
         res.status(500).json({ error: "Failed to generate Gemini response" });
     }
 });
+
 
 app.get("/unauthorized", (req, res) => {
     res.send(req.session.message?.[0] || "Unauthorized");
