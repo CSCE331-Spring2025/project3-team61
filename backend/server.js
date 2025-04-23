@@ -36,6 +36,18 @@ async function getDrinkInfo(userInput) {
     return result.rows[0]; // returns undefined if no match
 }
 
+async function getMostPopularProduct() {
+    const result = await pool.query(`
+      SELECT product.name, SUM(transaction_item.quantity) AS total_sold
+      FROM transaction_item
+      JOIN product ON product.id = transaction_item.product_id
+      GROUP BY product.name
+      ORDER BY total_sold DESC
+      LIMIT 1
+    `);
+    return result.rows[0]; // { name: 'Mocha Ice Blended', total_sold: 120 }
+}
+
 process.on("SIGINT", () => {
     pool.end();
     console.log("Application successfully shutdown");
@@ -718,40 +730,59 @@ app.post("/api/chat", async (req, res) => {
     }
 
     try {
-        //  Try to find relevant drink info
-        const drink = await getDrinkInfo(message);
+        const lowerMsg = message.toLowerCase();
+        let prompt = "";
+        let usedFallback = true;
 
-        // Gemini prompt
-        let prompt;
-        if (drink) {
-            const { name, product_type, calories } = drink;
-            prompt = `
-  You are a helpful assistant at a boba tea shop. Use the information provided below to answer the customer accurately.
+        // Popularity request
+        if (/(most\s+popular|best\s+(seller|drink)|top\s+drink)/.test(lowerMsg)) {
+            const bestseller = await getMostPopularProduct();
+            if (bestseller) {
+                prompt = `
+  You are a helpful assistant at a bubble tea shop.
+  
+  The current most popular drink is: ${bestseller.name}, with ${bestseller.total_sold} units sold.
+  
+  Customer: ${message}
+  `;
+                usedFallback = false;
+            }
+        }
+
+        // Nutrition/lookup-based request
+        if (usedFallback) {
+            const drink = await getDrinkInfo(message);
+            if (drink) {
+                const { name, product_type, calories } = drink;
+                prompt = `
+  You are a helpful assistant at a bubble tea shop. Use the following product information to answer the customer's question.
   
   Drink Info:
   - Name: ${name}
   - Type: ${product_type}
   - Calories: ${calories} kcal
   
-  Customer Question: ${message}
+  Customer: ${message}
   `;
-        } else {
-            // Fallback to standard prompt if no product match
+                usedFallback = false;
+            }
+        }
+
+        // General fallback prompt
+        if (usedFallback) {
             prompt = `
-  You are a helpful assistant at a boba tea shop. Answer the following question:
+  You are a friendly assistant at a boba tea shop. Answer the following question clearly and concisely:
   Customer: ${message}
   `;
         }
 
-        // Ask Gemini
+        // Gemini call
         const result = await geminiModel.generateContent([prompt]);
         const reply = result.response.text();
-
-        // Return reply
         res.json({ reply });
     } catch (error) {
         console.error("Gemini /api/chat error:", error);
-        res.status(500).json({ error: "Failed to generate response" });
+        res.status(500).json({ error: "Failed to generate Gemini response" });
     }
 });
 
