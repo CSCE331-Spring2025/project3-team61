@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import Modal from "react-modal";
+import Chatbot from "../components/chatbot";
+
 //import dotenv from "dotenv";
 
 
@@ -322,6 +324,7 @@ function CustomerPage() {
           {t("Add to Order")}
         </button>
       </Modal>
+      <Chatbot />
     </div>
   );
 }
