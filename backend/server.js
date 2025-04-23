@@ -7,6 +7,7 @@ import pg from "pg";
 import session from "express-session";
 import passport from "passport";
 import { Strategy } from "passport-google-oauth20";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const { Pool } = pg;
 
@@ -14,6 +15,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: "./.env" });
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const geminiModel = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
 const pool = new Pool({
     user: process.env.PSQL_USER,
@@ -695,6 +699,23 @@ app.get("/api/product-usage/categories", async (req, res) => {
             error: "Failed to fetch category data",
             details: err.message,
         });
+    }
+});
+
+app.post("/api/chat", async (req, res) => {
+    const { message } = req.body;
+
+    if (!message || typeof message !== "string") {
+        return res.status(400).json({ error: "Invalid message input" });
+    }
+
+    try {
+        const result = await geminiModel.generateContent([message]);
+        const reply = result.response.text();
+        res.json({ reply });
+    } catch (error) {
+        console.error("Gemini error:", error);
+        res.status(500).json({ error: "Failed to generate Gemini response" });
     }
 });
 

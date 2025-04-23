@@ -324,7 +324,7 @@ function CustomerPage() {
           {t("Add to Order")}
         </button>
       </Modal>
-      <Chatbot t={t} />
+      <Chatbot />
     </div>
   );
 }
