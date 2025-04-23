@@ -51,6 +51,28 @@ function CustomerPage() {
   const AZURE_ENDPOINT = "https://api.cognitive.microsofttranslator.com/translate?api-version=3.0";
   const AZURE_REGION = import.meta.env.VITE_TRANSLATE_REGION;
 
+  const WEATHER_API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
+  const WEATHER_API_URL = `http://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=77840&aqi=no`;
+
+  console.log("Api key", WEATHER_API_KEY);
+
+  const [tempLoaded, setTempLoaded] = useState<boolean>(false);
+  const [temp, setTemp] = useState<number>(0);
+  const [location, setLocation] = useState<string>("")
+  const [imageConditionUri, setImageConditionUri] = useState<string>("")
+
+  useEffect(() => {
+    fetch(WEATHER_API_URL)
+      .then((res) => res.json())
+      .then((jsonRes) => {
+          setLocation(jsonRes.location.name);
+          setTemp(jsonRes.current.temp_f);
+          setImageConditionUri("http:" + jsonRes.current.condition.icon);
+          setTempLoaded(true);
+      })
+      .catch((err) => console.error("Failed to fetch weather", err))
+  })
+
   const categoryDisplayNames: Record<string, string> = {
     milk_tea: "Milk Tea",
     ice_cream: "Ice Cream",
@@ -205,9 +227,17 @@ function CustomerPage() {
             >
               ← {t("Back to Start")}
             </button>
-            <span className="text-sm text-gray-500">
-              {t("Current Language")}: {language.toUpperCase()}
-            </span>
+            <div className="flex items-center gap-4">
+              {tempLoaded && (
+                <>
+                  <p>{location} {temp} °F</p>
+                  <img src={imageConditionUri}/>
+                </>
+              )}
+              <span className="text-sm text-gray-500">
+                {t("Current Language")}: {language.toUpperCase()}
+              </span>
+            </div>
           </div>
           <div className="flex h-full bg-gray-100">
             {/* Sidebar */}
