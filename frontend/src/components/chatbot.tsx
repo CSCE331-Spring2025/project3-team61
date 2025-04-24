@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { MessageCircle, Send, X } from "lucide-react";
 
-export default function Chatbot() {
+export default function Chatbot({ language }: { language: string }) {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<string[]>([]);
     const [input, setInput] = useState("");
@@ -58,7 +58,7 @@ export default function Chatbot() {
             const res = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: input }),
+                body: JSON.stringify({ message: input, language }),
             });
 
             const data = await res.json();

@@ -37,6 +37,21 @@ setInterval(() => {
     }
 }, 5 * 60 * 1000); // Run every 5 minutes
 
+const languageLabels = {
+    en: "English",
+    es: "Spanish",
+    zh: "Simplified Chinese",
+    "zh-Hans": "Simplified Chinese",
+    "zh-Hant": "Traditional Chinese",
+    vi: "Vietnamese",
+    ko: "Korean",
+    fr: "French",
+    ja: "Japanese",
+    de: "German",
+    hi: "Hindi",
+    ar: "Arabic"
+};
+
 const pool = new Pool({
     user: process.env.PSQL_USER,
     host: process.env.PSQL_HOST,
@@ -723,7 +738,9 @@ app.get("/api/product-usage/categories", async (req, res) => {
 // Chatbot
 app.post("/api/chat", async (req, res) => {
     try {
-        const { message, sessionId = null } = req.body;
+        const { message, sessionId = null, language = "en" } = req.body;
+
+        const languageName = languageLabels[language] || "the customer's selected language";
 
         // Input validation
         if (!message || typeof message !== "string") {
@@ -892,14 +909,14 @@ app.post("/api/chat", async (req, res) => {
 
         // Build the prompt for Gemini
         const prompt = `
-  You are a friendly and knowledgeable assistant at a boba tea shop. Use the following product information to answer the customer's question accurately. If you don't know an answer, be honest and suggest they ask a staff member for more information.
-  
-  ${contextString}
-  
-  Respond in a friendly, helpful manner as if you're behind the counter at the boba shop. Keep your answers concise but informative.
-  
-  Customer: ${message}
-  `;
+        You are a friendly and knowledgeable assistant at a boba tea shop. Use the following product information to answer the customer's question accurately. If you don't know an answer, be honest and suggest they ask a staff member for more information.
+        
+        ${contextString}
+        
+        Respond in a friendly, helpful manner in ${languageName}. Keep your answers concise but informative.
+        
+        Customer: ${message}
+        `;
 
         // Generate AI response
         const result = await geminiModel.generateContent([prompt]);
