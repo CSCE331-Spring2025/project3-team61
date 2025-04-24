@@ -35,7 +35,10 @@ function CustomerPage() {
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(
         null,
     );
-    const [modalOpen, setModalOpen] = useState(false);
+    const [drinkCustomizeModalOpen, setDrinkCustomizeModalOpen] =
+        useState<boolean>(false);
+
+    const [paymentModalOpen, setPaymentModalOpen] = useState<boolean>(false);
 
     const sizes = ["Small", "Regular", "Large"];
     const iceLevels = ["No Ice", "Less Ice", "Regular", "Extra Ice"];
@@ -48,6 +51,15 @@ function CustomerPage() {
         useState<string>("milk_tea");
     const [tapText, setTapText] = useState("Tap to Start");
 
+    const paymentTypes = ["Card", "Cash"];
+    const [selectedPaymentType, setSelectedPaymentType] = useState<string>("");
+
+    const handlePaymentClick = (pt: string) => {
+        setSelectedPaymentType(pt);
+        setPaymentModalOpen(false);
+        setOrderItems([]);
+    };
+
     const AZURE_TRANSLATOR_KEY = import.meta.env.VITE_TRANSLATE_KEY;
     const AZURE_ENDPOINT =
         "https://api.cognitive.microsofttranslator.com/translate?api-version=3.0";
@@ -55,8 +67,6 @@ function CustomerPage() {
 
     const WEATHER_API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
     const WEATHER_API_URL = `http://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=77840&aqi=no`;
-
-    console.log("Api key", WEATHER_API_KEY);
 
     const [tempLoaded, setTempLoaded] = useState<boolean>(false);
     const [temp, setTemp] = useState<number>(0);
@@ -119,9 +129,11 @@ function CustomerPage() {
             "Sugar Level",
             "Ice Level",
             "Add to Order",
+            "Select Payment Type",
             ...sizes,
             ...sugarLevels,
             ...iceLevels,
+            ...paymentTypes,
             ...products.map((p) => p.name),
             ...Object.values(categoryDisplayNames),
         ];
@@ -180,7 +192,7 @@ function CustomerPage() {
         setIce("Regular");
         setSugar("100%");
         setQuantity(1);
-        setModalOpen(true);
+        setDrinkCustomizeModalOpen(true);
     };
 
     const addToOrder = () => {
@@ -192,7 +204,7 @@ function CustomerPage() {
             options: [size, `${sugar} sugar`, ice],
         };
         setOrderItems((prev) => [...prev, item]);
-        setModalOpen(false);
+        setDrinkCustomizeModalOpen(false);
         setSelectedProduct(null);
     };
 
@@ -205,7 +217,7 @@ function CustomerPage() {
     const t = (key: string) => translatedText[key] || key;
 
     return (
-        <div className="relative h-screen">
+        <div className="relative h-screen flex flex-col">
             {!started && (
                 <div className="absolute inset-0 bg-white flex flex-col items-center justify-center z-50">
                     <img
@@ -231,7 +243,7 @@ function CustomerPage() {
                     </select>
                     <button
                         onClick={() => setStarted(true)}
-                        className="bg-slate-800 text-white px-12 py-6 rounded-full text-3xl shadow-lg hover:bg-slate-700 transition"
+                        className="bg-slate-800 text-white px-12 py-6 rounded-full text-3xl shadow-lg hover:bg-slate-700 cursor-pointer transition"
                     >
                         {tapText}
                     </button>
@@ -243,7 +255,7 @@ function CustomerPage() {
                     <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center">
                         <button
                             onClick={() => setStarted(false)}
-                            className="bg-white border border-gray-300 px-4 py-2 rounded-md shadow hover:bg-gray-100"
+                            className="bg-white border border-gray-300 px-4 py-2 rounded-md shadow hover:bg-gray-100 cursor-pointer"
                         >
                             ← {t("Back to Start")}
                         </button>
@@ -262,7 +274,7 @@ function CustomerPage() {
                             </span>
                         </div>
                     </div>
-                    <div className="flex h-full bg-gray-100">
+                    <div className="flex flex-auto bg-gray-100">
                         {/* Sidebar */}
                         <div className="w-60 p-4 bg-white border-r border-gray-300">
                             <h2 className="text-lg font-bold mb-4">
@@ -275,7 +287,7 @@ function CustomerPage() {
                                             onClick={() =>
                                                 setSelectedCategory(cat)
                                             }
-                                            className={`w-full text-left px-3 py-2 rounded-lg ${
+                                            className={`cursor-pointer w-full text-left px-3 py-2 rounded-lg ${
                                                 selectedCategory === cat
                                                     ? "bg-slate-700 text-white"
                                                     : "hover:bg-gray-100"
@@ -303,7 +315,7 @@ function CustomerPage() {
                                         <button
                                             key={product.id}
                                             onClick={() => openModal(product)}
-                                            className="bg-white p-4 rounded-lg shadow hover:shadow-md transition"
+                                            className="bg-white p-4 rounded-lg shadow hover:shadow-md cursor-pointer transition"
                                         >
                                             <img
                                                 src={getProductImage(
@@ -353,6 +365,7 @@ function CustomerPage() {
                                                     )}
                                                 </div>
                                                 <button
+                                                    className="cursor-pointer"
                                                     onClick={() =>
                                                         removeOrderItem(i)
                                                     }
@@ -373,7 +386,10 @@ function CustomerPage() {
                                     <span>{t("Total")}</span>
                                     <span>{centsToDollars(totalPrice)}</span>
                                 </div>
-                                <button className="w-full bg-slate-800 text-white mt-4 py-3 rounded-md text-lg">
+                                <button
+                                    className="w-full bg-slate-800 text-white mt-4 py-3 rounded-md text-lg cursor-pointer"
+                                    onClick={() => setPaymentModalOpen(true)}
+                                >
                                     {t("Pay Now")}
                                 </button>
                             </div>
@@ -383,11 +399,34 @@ function CustomerPage() {
             )}
 
             <Modal
-                isOpen={modalOpen}
-                onRequestClose={() => setModalOpen(false)}
+                isOpen={paymentModalOpen}
+                onRequestClose={() => setPaymentModalOpen(false)}
+                contentLabel="Payment Type"
+                className="w-full max-w-xl mx-auto mt-20 bg-white p-6 rounded-xl shadow-xl"
+                // overlayClassName="fixed inset-0 bg-white flex justify-center items-start z-50"
+            >
+                <h2 className="text-2xl font-bold mb-4">
+                    {t("Select Payment Type")}
+                </h2>
+                <div className="flex flex-col gap-4">
+                    {paymentTypes.map((pt) => (
+                        <button
+                            key={pt}
+                            className="border-3 border-stone-400 p-5 rounded-xl hover:border-slate-900 cursor-pointer font-bold text-xl"
+                            onClick={() => handlePaymentClick(pt)}
+                        >
+                            {t(pt)}
+                        </button>
+                    ))}
+                </div>
+            </Modal>
+
+            <Modal
+                isOpen={drinkCustomizeModalOpen}
+                onRequestClose={() => setDrinkCustomizeModalOpen(false)}
                 contentLabel="Customize Drink"
                 className="w-full max-w-xl mx-auto mt-20 bg-white p-6 rounded-xl shadow-xl"
-                overlayClassName="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-start z-50"
+                // overlayClassName="fixed inset-0 bg-white bg-opacity-80 flex justify-center items-start z-50"
             >
                 <h2 className="text-2xl font-bold mb-4">
                     {t("Customize")} {selectedProduct?.name}
@@ -427,14 +466,14 @@ function CustomerPage() {
                                     prev > 1 ? prev - 1 : prev,
                                 )
                             }
-                            className="w-8 h-8 bg-gray-200 rounded"
+                            className="w-8 h-8 bg-gray-200 rounded cursor-pointer"
                         >
                             -
                         </button>
                         <div className="text-lg">{quantity}</div>
                         <button
                             onClick={() => setQuantity((prev) => prev + 1)}
-                            className="w-8 h-8 bg-gray-200 rounded"
+                            className="w-8 h-8 bg-gray-200 rounded cursor-pointer"
                         >
                             +
                         </button>
@@ -447,7 +486,7 @@ function CustomerPage() {
                 </div>
                 <button
                     onClick={addToOrder}
-                    className="mt-6 bg-slate-800 text-white w-full py-3 rounded-md text-lg"
+                    className="mt-6 bg-slate-800 text-white w-full py-3 rounded-md text-lg cursor-pointer"
                 >
                     {t("Add to Order")}
                 </button>
@@ -473,7 +512,7 @@ function OptionButtons({
                 <button
                     key={option}
                     onClick={() => setValue(option)}
-                    className={`px-3 py-2 rounded border ${value === option ? "bg-slate-700 text-white" : "bg-white border-gray-300"}`}
+                    className={`cursor-pointer px-3 py-2 rounded border ${value === option ? "bg-slate-700 text-white" : "bg-white border-gray-300"}`}
                 >
                     {t(option)}
                 </button>
