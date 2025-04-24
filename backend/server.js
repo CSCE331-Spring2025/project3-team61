@@ -8,6 +8,7 @@ import session from "express-session";
 import passport from "passport";
 import { Strategy } from "passport-google-oauth20";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { v4 as uuidv4 } from 'uuid';
 
 const { Pool } = pg;
 
@@ -18,6 +19,23 @@ dotenv.config({ path: "./.env" });
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const geminiModel = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+const embedder = genAI.getGenerativeModel({ model: "embedding-001" });
+
+// In-memory conversation store
+const conversations = new Map();
+
+// Time to keep conversation history (15 minutes)
+const CONVERSATION_TTL = 15 * 60 * 1000;
+
+// Clean up old conversations
+setInterval(() => {
+    const now = Date.now();
+    for (const [id, convo] of conversations.entries()) {
+        if (now - convo.lastUpdated > CONVERSATION_TTL) {
+            conversations.delete(id);
+        }
+    }
+}, 5 * 60 * 1000); // Run every 5 minutes
 
 const pool = new Pool({
     user: process.env.PSQL_USER,
@@ -704,18 +722,48 @@ app.get("/api/product-usage/categories", async (req, res) => {
 
 // Chatbot
 app.post("/api/chat", async (req, res) => {
-    const { message } = req.body;
-
-    if (!message || typeof message !== "string") {
-        return res.status(400).json({ error: "Invalid message input" });
-    }
-
     try {
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const embedder = genAI.getGenerativeModel({ model: "embedding-001" });
+        const { message, sessionId = null } = req.body;
+
+        // Input validation
+        if (!message || typeof message !== "string") {
+            return res.status(400).json({
+                error: "Invalid message",
+                details: "Message must be a non-empty string"
+            });
+        }
+
+        // Get or create conversation
+        let conversation;
+        if (sessionId && conversations.has(sessionId)) {
+            conversation = conversations.get(sessionId);
+        } else {
+            const newSessionId = uuidv4();
+            conversation = {
+                id: newSessionId,
+                history: [],
+                lastUpdated: Date.now()
+            };
+            conversations.set(newSessionId, conversation);
+        }
+
+        // Basic intent detection
+        const intentKeywords = {
+            recommendation: ['recommend', 'suggestion', 'best', 'popular', 'favorite'],
+            allergen: ['allergy', 'allergic', 'allergen', 'dairy', 'nuts', 'gluten'],
+            pricing: ['price', 'cost', 'expensive', 'cheap', 'affordable'],
+            order: ['order', 'buy', 'purchase', 'get', 'want']
+        };
+
+        const detectedIntents = Object.entries(intentKeywords)
+            .filter(([_, keywords]) =>
+                keywords.some(keyword => message.toLowerCase().includes(keyword)))
+            .map(([intent]) => intent);
+
+        // Get embeddings
         const queryEmbedding = (await embedder.embedContent(message)).embedding.values;
 
-        // Get all product embeddings and metadata
+        // Get semantic search results
         const { rows: candidates } = await pool.query(`
         SELECT id, name, product_type, calories, price, embedding
         FROM product
@@ -736,77 +784,157 @@ app.post("/api/chat", async (req, res) => {
                 similarity: cosineSim(p.embedding, queryEmbedding),
             }))
             .sort((a, b) => b.similarity - a.similarity)
-            .slice(0, 3);
+            .slice(0, 5); // Increased from 3 to 5
 
-        // Get best-selling item
-        const bestsellerRes = await pool.query(`
-        SELECT product.name, SUM(transaction_item.quantity) AS total_sold
-        FROM transaction_item
-        JOIN product ON product.id = transaction_item.product_id
-        GROUP BY product.name
-        ORDER BY total_sold DESC
-        LIMIT 1
-      `);
-        const bestseller = bestsellerRes.rows[0];
+        // Build dynamic context based on intent
+        let contextData = {};
 
-        // Get top 3 most expensive items
-        const expensiveRes = await pool.query(`
-        SELECT name, price FROM product
-        ORDER BY price DESC
-        LIMIT 3
-      `);
-        const expensiveItems = expensiveRes.rows
-            .map(p => `${p.name} - $${(p.price / 100).toFixed(2)}`)
-            .join(", ");
+        // Always include top matches
+        contextData.topMatches = topMatches;
 
-        // Get allergen info per product
-        const allergenRes = await pool.query(`
-        SELECT p.name AS product_name, a.name AS allergen
-        FROM product p
-        JOIN product_allergens pa ON pa.product_id = p.id
-        JOIN allergens a ON a.id = pa.allergen_id
-      `);
-        const allergensByProduct = {};
-        for (const row of allergenRes.rows) {
-            if (!allergensByProduct[row.product_name]) allergensByProduct[row.product_name] = [];
-            allergensByProduct[row.product_name].push(row.allergen);
+        // Add more context data based on detected intents
+        if (detectedIntents.includes('recommendation') || detectedIntents.length === 0) {
+            // Get best-selling items
+            const bestsellerRes = await pool.query(`
+          SELECT product.id, product.name, product.product_type, SUM(transaction_item.quantity) AS total_sold
+          FROM transaction_item
+          JOIN product ON product.id = transaction_item.product_id
+          GROUP BY product.id, product.name, product.product_type
+          ORDER BY total_sold DESC
+          LIMIT 3
+        `);
+            contextData.bestsellers = bestsellerRes.rows;
         }
-        const allergenContext = Object.entries(allergensByProduct)
-            .map(([name, list]) => `- ${name}: ${list.join(", ")}`)
-            .join("\n");
 
-        // Build Gemini prompt
-        const context = `
-  Relevant drinks:
-  ${topMatches.map(p => `- ${p.name} (${p.product_type}, ${p.calories} kcal)`).join("\n")}
-  
-  Best-selling drink: ${bestseller.name} (${bestseller.total_sold} sold)
-  
-  Top 3 most expensive drinks: ${expensiveItems}
-  
-  Allergen information:
-  ${allergenContext}
-  `;
+        if (detectedIntents.includes('pricing')) {
+            // Get pricing info
+            const expensiveRes = await pool.query(`
+          SELECT id, name, price, product_type FROM product
+          ORDER BY price DESC
+          LIMIT 3
+        `);
+            const cheapRes = await pool.query(`
+          SELECT id, name, price, product_type FROM product
+          WHERE price > 0
+          ORDER BY price ASC
+          LIMIT 3
+        `);
+            contextData.expensiveItems = expensiveRes.rows;
+            contextData.cheapItems = cheapRes.rows;
+        }
 
+        if (detectedIntents.includes('allergen')) {
+            // Get comprehensive allergen info
+            const allergenRes = await pool.query(`
+          SELECT p.id, p.name AS product_name, a.name AS allergen
+          FROM product p
+          JOIN product_allergens pa ON pa.product_id = p.id
+          JOIN allergens a ON a.id = pa.allergen_id
+        `);
+
+            const allergensByProduct = {};
+            for (const row of allergenRes.rows) {
+                if (!allergensByProduct[row.product_name]) {
+                    allergensByProduct[row.product_name] = {
+                        id: row.id,
+                        allergens: []
+                    };
+                }
+                allergensByProduct[row.product_name].allergens.push(row.allergen);
+            }
+            contextData.allergens = allergensByProduct;
+        }
+
+        // Build context string for the prompt
+        let contextString = '';
+
+        // Always include top matches
+        contextString += `Relevant drinks:\n`;
+        contextString += topMatches.map(p =>
+            `- ${p.name} (${p.product_type}, ${p.calories} kcal, $${(p.price / 100).toFixed(2)})`
+        ).join('\n') + '\n\n';
+
+        // Add conditional sections based on intent
+        if (contextData.bestsellers) {
+            contextString += `Best-selling drinks:\n`;
+            contextString += contextData.bestsellers.map(p =>
+                `- ${p.name} (${p.product_type}, ${p.total_sold} sold)`
+            ).join('\n') + '\n\n';
+        }
+
+        if (contextData.expensiveItems) {
+            contextString += `Most expensive drinks:\n`;
+            contextString += contextData.expensiveItems.map(p =>
+                `- ${p.name} (${p.product_type}): $${(p.price / 100).toFixed(2)}`
+            ).join('\n') + '\n\n';
+
+            contextString += `Most affordable drinks:\n`;
+            contextString += contextData.cheapItems.map(p =>
+                `- ${p.name} (${p.product_type}): $${(p.price / 100).toFixed(2)}`
+            ).join('\n') + '\n\n';
+        }
+
+        if (contextData.allergens) {
+            contextString += `Allergen information:\n`;
+            contextString += Object.entries(contextData.allergens)
+                .map(([name, data]) => `- ${name}: ${data.allergens.join(', ')}`)
+                .join('\n') + '\n\n';
+        }
+
+        // Add conversation history for context
+        const conversationHistory = conversation.history.slice(-6).map(
+            (entry, i) => `${i % 2 === 0 ? 'Customer' : 'Assistant'}: ${entry}`
+        ).join('\n');
+
+        if (conversationHistory) {
+            contextString += `Previous conversation:\n${conversationHistory}\n\n`;
+        }
+
+        // Build the prompt for Gemini
         const prompt = `
-  You are a helpful and accurate assistant at a boba tea shop. Use the following product information to answer the customer's question:
+  You are a friendly and knowledgeable assistant at a boba tea shop. Use the following product information to answer the customer's question accurately. If you don't know an answer, be honest and suggest they ask a staff member for more information.
   
-  ${context}
+  ${contextString}
+  
+  Respond in a friendly, helpful manner as if you're behind the counter at the boba shop. Keep your answers concise but informative.
   
   Customer: ${message}
   `;
 
-        const geminiModel = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+        // Generate AI response
         const result = await geminiModel.generateContent([prompt]);
         const reply = result.response.text();
 
-        res.json({ reply });
+        // Update conversation history
+        conversation.history.push(message);
+        conversation.history.push(reply);
+        conversation.lastUpdated = Date.now();
+
+        // If history gets too long, trim it
+        if (conversation.history.length > 20) {
+            conversation.history = conversation.history.slice(-10);
+        }
+
+        // Return response with session info
+        res.json({
+            reply,
+            sessionId: conversation.id
+        });
+
     } catch (error) {
         console.error("/api/chat error:", error);
-        res.status(500).json({ error: "Failed to generate Gemini response" });
+
+        // Provide more helpful error message
+        const errorMessage = process.env.NODE_ENV === 'production'
+            ? "Sorry, I'm having trouble responding right now. Please try again or ask a staff member for help."
+            : error.message;
+
+        res.status(500).json({
+            error: "Failed to generate response",
+            message: errorMessage
+        });
     }
 });
-
 
 app.get("/unauthorized", (req, res) => {
     res.send(req.session.message?.[0] || "Unauthorized");
