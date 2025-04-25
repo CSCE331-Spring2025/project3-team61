@@ -104,7 +104,20 @@ app.get(
 );
 
 app.get("/api/products", (_, res) => {
-    pool.query("SELECT * from product;").then((query_res) => {
+    pool.query(`
+        SELECT
+            product.id,
+            product.product_type,
+            product.name,
+            product.price,
+            product.inventory,
+            product.calories,
+            COALESCE(json_agg(allergens.name) FILTER (WHERE allergens.id IS NOT NULL), '[]') AS allergens
+        FROM product
+        LEFT JOIN product_allergens ON product_allergens.product_id = product.id
+        LEFT JOIN allergens ON allergens.id = product_allergens.allergen_id
+        GROUP BY product.id;
+    `).then((query_res) => {
         res.json(query_res.rows);
     });
 });
