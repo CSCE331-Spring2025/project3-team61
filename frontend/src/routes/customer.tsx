@@ -216,7 +216,7 @@ function CustomerPage() {
         };
 
         translate();
-    }, []);
+    }, [products]);
 
     useEffect(() => {
         if (translationRecordsCache !== undefined) {
