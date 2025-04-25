@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import Modal from "react-modal";
+import Chatbot from "../components/chatbot";
+
+//import dotenv from "dotenv";
 
 export const Route = createFileRoute("/customer")({
     component: CustomerPage,
@@ -13,6 +16,8 @@ interface Product {
     product_type: string;
     inventory: number;
     originalName?: string; // Used for image lookup
+    calories: number;
+    allergens: string[];
 }
 
 interface OrderItem {
@@ -217,7 +222,7 @@ function CustomerPage() {
         };
 
         translate();
-    }, []);
+    }, [products]);
 
     useEffect(() => {
         if (translationRecordsCache !== undefined) {
@@ -312,13 +317,14 @@ function CustomerPage() {
                                     <p>
                                         {location} {temp} °F
                                     </p>
-                                    <img className="w-14" src={imageConditionUri} />
+                                    <img
+                                        className="w-14"
+                                        src={imageConditionUri}
+                                    />
                                 </>
                             )}
-                            <div className = "flex gap-2 center-items">
-                                <span>
-                                    {t("Current Language")}:
-                                </span>
+                            <div className="flex gap-2 center-items">
+                                <span>{t("Current Language")}:</span>
                                 <select
                                     className="w-10"
                                     value={language}
@@ -517,9 +523,21 @@ function CustomerPage() {
                 className="w-full max-w-xl mx-auto mt-20 bg-white p-6 rounded-xl shadow-xl"
                 // overlayClassName="fixed inset-0 bg-white bg-opacity-80 flex justify-center items-start z-50"
             >
-                <h2 className="text-2xl font-bold mb-4">
+                <h2 className="text-2xl font-bold">
                     {t("Customize")} {selectedProduct?.name}
                 </h2>
+                <div className="text-gray-500">
+                    Calories: {selectedProduct?.calories} cal
+                </div>
+                <div className="text-gray-500 mb-4">
+                    {selectedProduct?.allergens !== undefined &&
+                        selectedProduct?.allergens.length > 0 && (
+                            <div>
+                                Allergens:{" "}
+                                {selectedProduct?.allergens.join(", ")}
+                            </div>
+                        )}
+                </div>
                 <div className="mb-3">
                     <label className="font-semibold">{t("Size")}</label>
                     <OptionButtons
@@ -580,6 +598,7 @@ function CustomerPage() {
                     {t("Add to Order")}
                 </button>
             </Modal>
+            <Chatbot language={language} />
         </div>
     );
 }
