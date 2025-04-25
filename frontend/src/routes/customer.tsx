@@ -18,6 +18,7 @@ interface Product {
     originalName?: string; // Used for image lookup
     calories: number;
     allergens: string[];
+    img_src: string,
 }
 
 interface OrderItem {
@@ -408,7 +409,7 @@ function CustomerPage() {
                                         className="bg-white p-4 rounded-lg shadow hover:shadow-md cursor-pointer transition"
                                     >
                                         <img
-                                            src={getProductImage(product.originalName || product.name)}
+                                            src={imgPath(product.img_src)}
                                             alt={product.name}
                                             style={{
                                                 height: `${8 * zoomLevel}rem`,
@@ -629,31 +630,8 @@ function OptionButtons({
     );
 }
 
-function getProductImage(name: string): string {
-    const images: Record<string, string> = {
-        "Classic Milk Tea": "/classic_milk_tea.png",
-        "Fresh Taro Milk": "/taro_tea.png",
-        "Vanilla Ice Cream": "/vanilla.png",
-        "Matcha Fresh Milk": "/matcha.png",
-        "Mocha Ice Blended": "/mocha-tea.png",
-        "Chocolate Ice Cream": "/chocolate.png",
-        "Strawberry Ice Cream": "/strawberry.png",
-        "Earl Grey Tea": "/earl.png",
-        "Jasmine Green Tea": "/jasmine.png",
-        "Okinawa Milk Tea": "/okinawa.png",
-        "Mango Fruit Tea": "/mango-tea.png",
-        "Strawberry Fruit Tea": "/strawberry-tea.png",
-        "Caramel Ice Blended": "/caramel-blended.png",
-        "Lemon Tea Mojito": "/lemon-moj.png",
-        "Passionfruit Tea Mojito": "/passion-moj.png",
-        "Black Tea Crema": "/black-crema.png",
-        "Oolong Crema": "/oolong.png",
-        "Bottled Water": "/water.png",
-        "Canned Soda": "/soda.png",
-        "Limited Edition Tea": "/limited.png",
-        "Pearl Topping": "/pearl.png",
-    };
-    return images[name] || "/default.png";
+function imgPath(img_src: string): string {
+    return "/static/" + img_src;
 }
 
 function centsToDollars(cents: number): string {

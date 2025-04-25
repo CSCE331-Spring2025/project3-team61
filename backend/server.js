@@ -8,7 +8,7 @@ import session from "express-session";
 import passport from "passport";
 import { Strategy } from "passport-google-oauth20";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 const { Pool } = pg;
 
@@ -28,14 +28,17 @@ const conversations = new Map();
 const CONVERSATION_TTL = 15 * 60 * 1000;
 
 // Clean up old conversations
-setInterval(() => {
-    const now = Date.now();
-    for (const [id, convo] of conversations.entries()) {
-        if (now - convo.lastUpdated > CONVERSATION_TTL) {
-            conversations.delete(id);
+setInterval(
+    () => {
+        const now = Date.now();
+        for (const [id, convo] of conversations.entries()) {
+            if (now - convo.lastUpdated > CONVERSATION_TTL) {
+                conversations.delete(id);
+            }
         }
-    }
-}, 5 * 60 * 1000); // Run every 5 minutes
+    },
+    5 * 60 * 1000,
+); // Run every 5 minutes
 
 const languageLabels = {
     en: "English",
@@ -49,7 +52,7 @@ const languageLabels = {
     ja: "Japanese",
     de: "German",
     hi: "Hindi",
-    ar: "Arabic"
+    ar: "Arabic",
 };
 
 const pool = new Pool({
@@ -123,6 +126,7 @@ passport.deserializeUser((obj, done) => {
 const PORT = process.env.PORT || 8080;
 
 app.use(express.static("../frontend/dist"));
+app.use(express.static("./static"));
 
 app.get(
     "/auth/google",
@@ -141,7 +145,8 @@ app.get(
 );
 
 app.get("/api/products", (_, res) => {
-    pool.query(`
+    pool.query(
+        `
         SELECT
             product.id,
             product.product_type,
@@ -149,12 +154,14 @@ app.get("/api/products", (_, res) => {
             product.price,
             product.inventory,
             product.calories,
+            product.img_src,
             COALESCE(json_agg(allergens.name) FILTER (WHERE allergens.id IS NOT NULL), '[]') AS allergens
         FROM product
         LEFT JOIN product_allergens ON product_allergens.product_id = product.id
         LEFT JOIN allergens ON allergens.id = product_allergens.allergen_id
         GROUP BY product.id;
-    `).then((query_res) => {
+    `,
+    ).then((query_res) => {
         res.json(query_res.rows);
     });
 });
@@ -276,7 +283,7 @@ app.delete("/api/employee/:id", async (req, res) => {
 
 app.get("/api/products-by-category", (req, res) => {
     pool.query(
-        "SELECT json_object_agg(product_type, product_info) AS product_data FROM (SELECT product_type, json_agg(json_build_object('id', id, 'name', name, 'price', price, 'inventory', inventory, 'product_type', product_type)) AS product_info FROM product GROUP BY product_type) AS subquery;"
+        "SELECT json_object_agg(product_type, product_info) AS product_data FROM (SELECT product_type, json_agg(json_build_object('id', id, 'name', name, 'price', price, 'inventory', inventory, 'product_type', product_type)) AS product_info FROM product GROUP BY product_type) AS subquery;",
         // "SELECT json_object_agg(product_type, names) AS product_data FROM ( SELECT product_type, json_agg(name) AS names FROM product GROUP BY product_type) AS subquery;",
     ).then((query_res) => {
         const data = query_res.rows[0].product_data;
@@ -753,13 +760,14 @@ app.post("/api/chat", async (req, res) => {
     try {
         const { message, sessionId = null, language = "en" } = req.body;
 
-        const languageName = languageLabels[language] || "the customer's selected language";
+        const languageName =
+            languageLabels[language] || "the customer's selected language";
 
         // Input validation
         if (!message || typeof message !== "string") {
             return res.status(400).json({
                 error: "Invalid message",
-                details: "Message must be a non-empty string"
+                details: "Message must be a non-empty string",
             });
         }
 
@@ -772,26 +780,43 @@ app.post("/api/chat", async (req, res) => {
             conversation = {
                 id: newSessionId,
                 history: [],
-                lastUpdated: Date.now()
+                lastUpdated: Date.now(),
             };
             conversations.set(newSessionId, conversation);
         }
 
         // Basic intent detection
         const intentKeywords = {
-            recommendation: ['recommend', 'suggestion', 'best', 'popular', 'favorite'],
-            allergen: ['allergy', 'allergic', 'allergen', 'dairy', 'nuts', 'gluten'],
-            pricing: ['price', 'cost', 'expensive', 'cheap', 'affordable'],
-            order: ['order', 'buy', 'purchase', 'get', 'want']
+            recommendation: [
+                "recommend",
+                "suggestion",
+                "best",
+                "popular",
+                "favorite",
+            ],
+            allergen: [
+                "allergy",
+                "allergic",
+                "allergen",
+                "dairy",
+                "nuts",
+                "gluten",
+            ],
+            pricing: ["price", "cost", "expensive", "cheap", "affordable"],
+            order: ["order", "buy", "purchase", "get", "want"],
         };
 
         const detectedIntents = Object.entries(intentKeywords)
             .filter(([_, keywords]) =>
-                keywords.some(keyword => message.toLowerCase().includes(keyword)))
+                keywords.some((keyword) =>
+                    message.toLowerCase().includes(keyword),
+                ),
+            )
             .map(([intent]) => intent);
 
         // Get embeddings
-        const queryEmbedding = (await embedder.embedContent(message)).embedding.values;
+        const queryEmbedding = (await embedder.embedContent(message)).embedding
+            .values;
 
         // Get semantic search results
         const { rows: candidates } = await pool.query(`
@@ -809,7 +834,7 @@ app.post("/api/chat", async (req, res) => {
         };
 
         const topMatches = candidates
-            .map(p => ({
+            .map((p) => ({
                 ...p,
                 similarity: cosineSim(p.embedding, queryEmbedding),
             }))
@@ -823,7 +848,10 @@ app.post("/api/chat", async (req, res) => {
         contextData.topMatches = topMatches;
 
         // Add more context data based on detected intents
-        if (detectedIntents.includes('recommendation') || detectedIntents.length === 0) {
+        if (
+            detectedIntents.includes("recommendation") ||
+            detectedIntents.length === 0
+        ) {
             // Get best-selling items
             const bestsellerRes = await pool.query(`
           SELECT product.id, product.name, product.product_type, SUM(transaction_item.quantity) AS total_sold
@@ -836,7 +864,7 @@ app.post("/api/chat", async (req, res) => {
             contextData.bestsellers = bestsellerRes.rows;
         }
 
-        if (detectedIntents.includes('pricing')) {
+        if (detectedIntents.includes("pricing")) {
             // Get pricing info
             const expensiveRes = await pool.query(`
           SELECT id, name, price, product_type FROM product
@@ -853,7 +881,7 @@ app.post("/api/chat", async (req, res) => {
             contextData.cheapItems = cheapRes.rows;
         }
 
-        if (detectedIntents.includes('allergen')) {
+        if (detectedIntents.includes("allergen")) {
             // Get comprehensive allergen info
             const allergenRes = await pool.query(`
           SELECT p.id, p.name AS product_name, a.name AS allergen
@@ -867,54 +895,80 @@ app.post("/api/chat", async (req, res) => {
                 if (!allergensByProduct[row.product_name]) {
                     allergensByProduct[row.product_name] = {
                         id: row.id,
-                        allergens: []
+                        allergens: [],
                     };
                 }
-                allergensByProduct[row.product_name].allergens.push(row.allergen);
+                allergensByProduct[row.product_name].allergens.push(
+                    row.allergen,
+                );
             }
             contextData.allergens = allergensByProduct;
         }
 
         // Build context string for the prompt
-        let contextString = '';
+        let contextString = "";
 
         // Always include top matches
         contextString += `Relevant drinks:\n`;
-        contextString += topMatches.map(p =>
-            `- ${p.name} (${p.product_type}, ${p.calories} kcal, $${(p.price / 100).toFixed(2)})`
-        ).join('\n') + '\n\n';
+        contextString +=
+            topMatches
+                .map(
+                    (p) =>
+                        `- ${p.name} (${p.product_type}, ${p.calories} kcal, $${(p.price / 100).toFixed(2)})`,
+                )
+                .join("\n") + "\n\n";
 
         // Add conditional sections based on intent
         if (contextData.bestsellers) {
             contextString += `Best-selling drinks:\n`;
-            contextString += contextData.bestsellers.map(p =>
-                `- ${p.name} (${p.product_type}, ${p.total_sold} sold)`
-            ).join('\n') + '\n\n';
+            contextString +=
+                contextData.bestsellers
+                    .map(
+                        (p) =>
+                            `- ${p.name} (${p.product_type}, ${p.total_sold} sold)`,
+                    )
+                    .join("\n") + "\n\n";
         }
 
         if (contextData.expensiveItems) {
             contextString += `Most expensive drinks:\n`;
-            contextString += contextData.expensiveItems.map(p =>
-                `- ${p.name} (${p.product_type}): $${(p.price / 100).toFixed(2)}`
-            ).join('\n') + '\n\n';
+            contextString +=
+                contextData.expensiveItems
+                    .map(
+                        (p) =>
+                            `- ${p.name} (${p.product_type}): $${(p.price / 100).toFixed(2)}`,
+                    )
+                    .join("\n") + "\n\n";
 
             contextString += `Most affordable drinks:\n`;
-            contextString += contextData.cheapItems.map(p =>
-                `- ${p.name} (${p.product_type}): $${(p.price / 100).toFixed(2)}`
-            ).join('\n') + '\n\n';
+            contextString +=
+                contextData.cheapItems
+                    .map(
+                        (p) =>
+                            `- ${p.name} (${p.product_type}): $${(p.price / 100).toFixed(2)}`,
+                    )
+                    .join("\n") + "\n\n";
         }
 
         if (contextData.allergens) {
             contextString += `Allergen information:\n`;
-            contextString += Object.entries(contextData.allergens)
-                .map(([name, data]) => `- ${name}: ${data.allergens.join(', ')}`)
-                .join('\n') + '\n\n';
+            contextString +=
+                Object.entries(contextData.allergens)
+                    .map(
+                        ([name, data]) =>
+                            `- ${name}: ${data.allergens.join(", ")}`,
+                    )
+                    .join("\n") + "\n\n";
         }
 
         // Add conversation history for context
-        const conversationHistory = conversation.history.slice(-6).map(
-            (entry, i) => `${i % 2 === 0 ? 'Customer' : 'Assistant'}: ${entry}`
-        ).join('\n');
+        const conversationHistory = conversation.history
+            .slice(-6)
+            .map(
+                (entry, i) =>
+                    `${i % 2 === 0 ? "Customer" : "Assistant"}: ${entry}`,
+            )
+            .join("\n");
 
         if (conversationHistory) {
             contextString += `Previous conversation:\n${conversationHistory}\n\n`;
@@ -948,20 +1002,20 @@ app.post("/api/chat", async (req, res) => {
         // Return response with session info
         res.json({
             reply,
-            sessionId: conversation.id
+            sessionId: conversation.id,
         });
-
     } catch (error) {
         console.error("/api/chat error:", error);
 
         // Provide more helpful error message
-        const errorMessage = process.env.NODE_ENV === 'production'
-            ? "Sorry, I'm having trouble responding right now. Please try again or ask a staff member for help."
-            : error.message;
+        const errorMessage =
+            process.env.NODE_ENV === "production"
+                ? "Sorry, I'm having trouble responding right now. Please try again or ask a staff member for help."
+                : error.message;
 
         res.status(500).json({
             error: "Failed to generate response",
-            message: errorMessage
+            message: errorMessage,
         });
     }
 });
@@ -988,6 +1042,10 @@ app.get("/customer", (_, res) => {
 
 app.get("menu-board", (_, res) => {
     sendIndex(res);
+});
+
+app.get("/static/*", (req, res) => {
+    res.sendFile(path.resolve(__dirname, path.join(".", req.url)));
 });
 
 app.get("*", isAuthenticated, (_, res) => {
