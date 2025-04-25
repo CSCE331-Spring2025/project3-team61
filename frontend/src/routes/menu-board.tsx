@@ -1,5 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
+import Modal from "react-modal";
 
 export const Route = createFileRoute("/menu-board")({
     component: MenuBoard,
@@ -24,6 +25,7 @@ interface Product {
     inventory: number;
     image_url?: string;
     originalName?: string; // Added for image lookup
+    calories: number;
 }
 
 function MenuBoard() {
@@ -32,9 +34,13 @@ function MenuBoard() {
     const [translatedText, setTranslatedText] = useState<
         Record<string, string>
     >({});
-    const [language, setLanguage] = useState("en");
+    const [language, setLanguage] = useState<LanguageKey>("en");
     const router = useRouter();
     const [fontSize, setFontSize] = useState(16);
+    const [showCalories, setShowCalories] = useState<boolean>(false);
+
+    const [showAccessibilityModal, setShowAccessibilityModal] =
+        useState<boolean>(false);
 
     const AZURE_TRANSLATOR_KEY = import.meta.env.VITE_TRANSLATE_KEY;
     const AZURE_ENDPOINT =
@@ -76,6 +82,36 @@ function MenuBoard() {
         getProducts();
     }, []);
 
+    type LanguageKey =
+        | "en"
+        | "es"
+        | "fr"
+        | "de"
+        | "zh-Hans"
+        | "vi"
+        | "ko"
+        | "ja"
+        | "hi"
+        | "ar";
+
+    const languages: Record<LanguageKey, string> = {
+        en: "English",
+        es: "Español",
+        fr: "Français (French)",
+        de: "Deutsch (German)",
+        "zh-Hans": "中文",
+        vi: "Tiếng Việt",
+        ko: "한국어",
+        ja: "日本語 (Japanese)",
+        hi: "हिंदी (Hindi)",
+        ar: "العربية (Arabic)",
+    };
+
+    type TranslationRecord = Record<string, string>;
+
+    const [translationRecordsCache, setTranslationRecordsCache] =
+        useState<Record<LanguageKey, TranslationRecord>>();
+
     // Translation effect - similar to customer.tsx
     useEffect(() => {
         const labels = [
@@ -97,42 +133,58 @@ function MenuBoard() {
             ...products.map((p) => p.name),
         ];
 
-        const translateWithAzure = async () => {
-            if (language === "en") {
-                const passthrough: Record<string, string> = {};
-                labels.forEach((label) => (passthrough[label] = label));
-                setTranslatedText(passthrough);
-                return;
+        const translate = () => {
+            let translateURL = AZURE_ENDPOINT;
+            for (const language in languages) {
+                translateURL += `&to=${language}`;
             }
+            fetch(translateURL, {
+                method: "POST",
+                headers: {
+                    "Ocp-Apim-Subscription-Key": AZURE_TRANSLATOR_KEY!,
+                    "Ocp-Apim-Subscription-Region": AZURE_REGION,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(
+                    labels.map((label) => {
+                        return { Text: label };
+                    }),
+                ),
+            })
+                .then((res) => res.json())
+                .then((jsonRes) => {
+                    // console.log(jsonRes);
+                    let trc: Record<LanguageKey, TranslationRecord> =
+                        {} as Record<LanguageKey, TranslationRecord>;
+                    for (let i = 0; i < labels.length; i++) {
+                        const { translations } = jsonRes[i];
+                        for (const translation of translations) {
+                            const { text, to } = translation;
+                            const label = labels[i];
 
-            const translated: Record<string, string> = {};
-            for (const label of labels) {
-                try {
-                    const res = await fetch(
-                        `${AZURE_ENDPOINT}&to=${language}`,
-                        {
-                            method: "POST",
-                            headers: {
-                                "Ocp-Apim-Subscription-Key":
-                                    AZURE_TRANSLATOR_KEY!,
-                                "Ocp-Apim-Subscription-Region": AZURE_REGION,
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify([{ Text: label }]),
-                        },
-                    );
-                    const json = await res.json();
-                    translated[label] =
-                        json?.[0]?.translations?.[0]?.text || label;
-                } catch (err) {
-                    translated[label] = label;
-                }
-            }
-            setTranslatedText(translated);
+                            const lk = to as LanguageKey;
+
+                            if (trc[lk] === undefined) {
+                                trc[lk] = {} as TranslationRecord;
+                            }
+
+                            trc[lk][label] = text;
+                        }
+                    }
+
+                    setTranslationRecordsCache(trc);
+                })
+                .catch((err) => console.error("Error:", err));
         };
 
-        translateWithAzure();
-    }, [language, products, AZURE_TRANSLATOR_KEY, AZURE_REGION]);
+        translate();
+    }, [products]);
+
+    useEffect(() => {
+        if (translationRecordsCache !== undefined) {
+            setTranslatedText(translationRecordsCache[language]);
+        }
+    }, [language, translationRecordsCache]);
 
     // Update product names with translations
     useEffect(() => {
@@ -181,7 +233,7 @@ function MenuBoard() {
     return (
         <div className="flex justify-center min-h-screen bg-gray-100 inset-0">
             <div className="max-w-screen-2xl w-full p-5">
-                {/* Language Selector */}
+                {/* Top bar */}
                 <div className="flex justify-between items-center mb-4">
                     {/* Back Button */}
                     <button
@@ -197,26 +249,10 @@ function MenuBoard() {
                         <div className="font-bold">{t("Back")}</div>
                     </button>
 
-                    {/* Language Selector */}
-                    <div className="flex items-center">
-                        <span className="mr-2">{t("Language")}:</span>
-                        <select
-                            value={language}
-                            onChange={(e) => setLanguage(e.target.value)}
-                            className="border px-4 py-2 rounded"
-                        >
-                            <option value="en">English</option>
-                            <option value="es">Español</option>
-                            <option value="zh-Hans">中文</option>
-                            <option value="vi">Tiếng Việt</option>
-                            <option value="ko">한국어</option>
-                            <option value="fr">Français (French)</option>
-                            <option value="ja">日本語 (Japanese)</option>
-                            <option value="de">Deutsch (German)</option>
-                            <option value="hi">हिंदी (Hindi)</option>
-                            <option value="ar">العربية (Arabic)</option>
-                        </select>
-                    </div>
+                    {/* Accessability Selector */}
+                    <button onClick={() => setShowAccessibilityModal(true)}>
+                        <img className="w-8 cursor-pointer" src="./world.svg" />
+                    </button>
                 </div>
 
                 <h1
@@ -296,6 +332,8 @@ function MenuBoard() {
                                             }}
                                         >
                                             {centsToDollars(product.price)}
+                                            {showCalories &&
+                                                ` • ${product.calories} cal`}
                                         </span>
                                     </div>
                                 ))}
@@ -355,7 +393,7 @@ function MenuBoard() {
                                                 fontSize: `${fontSize}px`,
                                             }}
                                         >
-                                            {product.name}
+                                            {t(product.name)}
                                         </span>
                                         <span
                                             className="text-sm"
@@ -364,6 +402,8 @@ function MenuBoard() {
                                             }}
                                         >
                                             {centsToDollars(product.price)}
+                                            {showCalories &&
+                                                ` • ${product.calories} cal`}
                                         </span>
                                     </div>
                                 ))}
@@ -432,6 +472,8 @@ function MenuBoard() {
                                             }}
                                         >
                                             {centsToDollars(product.price)}
+                                            {showCalories &&
+                                                ` • ${product.calories} cal`}
                                         </span>
                                     </div>
                                 ))}
@@ -500,49 +542,61 @@ function MenuBoard() {
                                             }}
                                         >
                                             {centsToDollars(product.price)}
+                                            {showCalories &&
+                                                ` • ${product.calories} cal`}
                                         </span>
                                     </div>
                                 ))}
                             </div>
                         </div>
-
-                        {/* Accessibility */}
-                        <div className="col-span-3 bg-white p-4 rounded-md shadow-md">
-                            <h2
-                                className="text-xl font-bold mb-3"
-                                style={{ fontSize: `${fontSize}px` }}
-                            >
-                                {t("Accessibility")}
-                            </h2>
-                            <div className="grid grid-cols-3 gap-4 text-center">
-                                <button
-                                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-                                    style={{ fontSize: `${fontSize}px` }}
-                                    aria-label="Increase text size"
-                                    onClick={increaseFontSize}
-                                >
-                                    {t("Text+")}
-                                </button>
-                                <button
-                                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-                                    style={{ fontSize: `${fontSize}px` }}
-                                    onClick={decreaseFontSize}
-                                    aria-label="Decrease text size"
-                                >
-                                    {t("Text-")}
-                                </button>
-                                <button
-                                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-                                    style={{ fontSize: `${fontSize}px` }}
-                                    aria-label="Show Calories"
-                                >
-                                    {t("Calories")}
-                                </button>
-                            </div>
-                        </div>
                     </div>
                 )}
             </div>
+
+            <Modal
+                isOpen={showAccessibilityModal}
+                onRequestClose={() => setShowAccessibilityModal(false)}
+                contentLabel="Accessibility"
+                className="w-full max-w-xl mx-auto mt-20 bg-white p-6 rounded-xl shadow-xl"
+            >
+                <h2 className="text-2xl font-bold mb-4">Accessibility</h2>
+                <span className="mr-2">Language:</span>
+                <select
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value as LanguageKey)}
+                    className="border px-4 py-2 rounded"
+                >
+                    {Object.entries(languages).map(([value, displayName]) => (
+                        <option key={value} value={value}>
+                            {displayName}
+                        </option>
+                    ))}
+                </select>
+                <div className="flex items-center mt-4">
+                    <div className="mr-2">Font Size:</div>
+                    <button onClick={decreaseFontSize}>
+                        <img
+                            src="minus.svg"
+                            width="20"
+                            className="mr-2 mt-0.5 border rounded-xl cursor-pointer"
+                        />
+                    </button>
+                    <div>{fontSize}</div>
+                    <button onClick={increaseFontSize}>
+                        <img
+                            src="plus.svg"
+                            width="20"
+                            className="ml-2 mt-0.5 border rounded-xl cursor-pointer"
+                        />
+                    </button>
+                </div>
+                <button
+                    className="mt-4 bg-gray-100 p-3 rounded hover:bg-gray-300 cursor-pointer"
+                    onClick={() => setShowCalories((sc) => !sc)}
+                >
+                    {showCalories ? "Hide " : "Show "} Calories
+                </button>
+            </Modal>
         </div>
     );
 }
