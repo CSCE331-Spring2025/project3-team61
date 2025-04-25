@@ -24,7 +24,7 @@ interface OrderItem {
 
 function CustomerPage() {
     const [started, setStarted] = useState(false);
-    const [language, setLanguage] = useState("en");
+    const [language, setLanguage] = useState<LanguageKey>("en");
     const [translatedText, setTranslatedText] = useState<
         Record<string, string>
     >({});
@@ -60,6 +60,36 @@ function CustomerPage() {
         setOrderItems([]);
     };
 
+    type LanguageKey =
+        | "en"
+        | "es"
+        | "fr"
+        | "de"
+        | "zh-Hans"
+        | "vi"
+        | "ko"
+        | "ja"
+        | "hi"
+        | "ar";
+
+    const languages: Record<LanguageKey, string> = {
+        en: "English",
+        es: "Español",
+        fr: "Français (French)",
+        de: "Deutsch (German)",
+        "zh-Hans": "中文",
+        vi: "Tiếng Việt",
+        ko: "한국어",
+        ja: "日本語 (Japanese)",
+        hi: "हिंदी (Hindi)",
+        ar: "العربية (Arabic)",
+    };
+
+    type TranslationRecord = Record<string, string>;
+
+    const [translationRecordsCache, setTranslationRecordsCache] =
+        useState<Record<LanguageKey, TranslationRecord>>();
+
     const AZURE_TRANSLATOR_KEY = import.meta.env.VITE_TRANSLATE_KEY;
     const AZURE_ENDPOINT =
         "https://api.cognitive.microsofttranslator.com/translate?api-version=3.0";
@@ -83,7 +113,7 @@ function CustomerPage() {
                 setTempLoaded(true);
             })
             .catch((err) => console.error("Failed to fetch weather", err));
-    });
+    }, []);
 
     const categoryDisplayNames: Record<string, string> = {
         milk_tea: "Milk Tea",
@@ -119,6 +149,8 @@ function CustomerPage() {
     useEffect(() => {
         const labels = [
             "Tap to Start",
+            "Back to Start",
+            "Current Language",
             "Categories",
             "Choose Your Drink",
             "Your Order",
@@ -138,44 +170,58 @@ function CustomerPage() {
             ...Object.values(categoryDisplayNames),
         ];
 
-        const translateWithAzure = async () => {
-            if (language === "en") {
-                const passthrough: Record<string, string> = {};
-                labels.forEach((label) => (passthrough[label] = label));
-                setTranslatedText(passthrough);
-                setTapText("Tap to Start");
-                return;
+        const translate = () => {
+            let translateURL = AZURE_ENDPOINT;
+            for (const language in languages) {
+                translateURL += `&to=${language}`;
             }
+            fetch(translateURL, {
+                method: "POST",
+                headers: {
+                    "Ocp-Apim-Subscription-Key": AZURE_TRANSLATOR_KEY!,
+                    "Ocp-Apim-Subscription-Region": AZURE_REGION,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(
+                    labels.map((label) => {
+                        return { Text: label };
+                    }),
+                ),
+            })
+                .then((res) => res.json())
+                .then((jsonRes) => {
+                    // console.log(jsonRes);
+                    let trc: Record<LanguageKey, TranslationRecord> =
+                        {} as Record<LanguageKey, TranslationRecord>;
+                    for (let i = 0; i < labels.length; i++) {
+                        const { translations } = jsonRes[i];
+                        for (const translation of translations) {
+                            const { text, to } = translation;
+                            const label = labels[i];
 
-            const translated: Record<string, string> = {};
-            for (const label of labels) {
-                try {
-                    const res = await fetch(
-                        `${AZURE_ENDPOINT}&to=${language}`,
-                        {
-                            method: "POST",
-                            headers: {
-                                "Ocp-Apim-Subscription-Key":
-                                    AZURE_TRANSLATOR_KEY!,
-                                "Ocp-Apim-Subscription-Region": AZURE_REGION,
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify([{ Text: label }]),
-                        },
-                    );
-                    const json = await res.json();
-                    translated[label] =
-                        json?.[0]?.translations?.[0]?.text || label;
-                } catch (err) {
-                    translated[label] = label;
-                }
-            }
-            setTranslatedText(translated);
-            setTapText(translated["Tap to Start"] || "Tap to Start");
+                            const lk = to as LanguageKey;
+
+                            if (trc[lk] === undefined) {
+                                trc[lk] = {} as TranslationRecord;
+                            }
+
+                            trc[lk][label] = text;
+                        }
+                    }
+
+                    setTranslationRecordsCache(trc);
+                })
+                .catch((err) => console.error("Error:", err));
         };
 
-        translateWithAzure();
-    }, [language, products]);
+        translate();
+    }, []);
+
+    useEffect(() => {
+        if (translationRecordsCache !== undefined) {
+            setTranslatedText(translationRecordsCache[language]);
+        }
+    }, [language, translationRecordsCache]);
 
     useEffect(() => {
         const translated = products.map((p) => ({
@@ -227,25 +273,22 @@ function CustomerPage() {
                     />
                     <select
                         value={language}
-                        onChange={(e) => setLanguage(e.target.value)}
+                        onChange={(e) => setLanguage(e.target.value as LanguageKey)}
                         className="mb-6 border px-4 py-2 rounded"
                     >
-                        <option value="en">English</option>
-                        <option value="es">Español</option>
-                        <option value="zh-Hans">中文</option>
-                        <option value="vi">Tiếng Việt</option>
-                        <option value="ko">한국어</option>
-                        <option value="fr">Français (French)</option>
-                        <option value="ja">日本語 (Japanese)</option>
-                        <option value="de">Deutsch (German)</option>
-                        <option value="hi">हिंदी (Hindi)</option>
-                        <option value="ar">العربية (Arabic)</option>
+                        {Object.entries(languages).map(
+                            ([value, displayName]) => (
+                                <option key={value} value={value}>
+                                    {displayName}
+                                </option>
+                            ),
+                        )}
                     </select>
                     <button
                         onClick={() => setStarted(true)}
                         className="bg-slate-800 text-white px-12 py-6 rounded-full text-3xl shadow-lg hover:bg-slate-700 cursor-pointer transition"
                     >
-                        {tapText}
+                        {t("Tap to Start")}
                     </button>
                 </div>
             )}
