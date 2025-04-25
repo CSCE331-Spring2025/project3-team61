@@ -55,6 +55,9 @@ function CustomerPage() {
     const [selectedCategory, setSelectedCategory] =
         useState<string>("milk_tea");
 
+    const [zoomLevel, setZoomLevel] = useState(1);
+
+
     const paymentTypes = ["Card", "Cash"];
     const [_, setSelectedPaymentType] = useState<string>("");
 
@@ -340,9 +343,30 @@ function CustomerPage() {
                                     )}
                                 </select>
                             </div>
+                            <div className="flex gap-1 items-center">
+                            <button
+                                onClick={() => setZoomLevel((prev) => Math.min(prev + 0.1, 1.5))}
+                                className="text-sm bg-gray-200 px-2 py-1 rounded hover:bg-gray-300"
+                            >
+                                🔍+
+                            </button>
+                            <button
+                                onClick={() => setZoomLevel((prev) => Math.max(prev - 0.1, 0.8))}
+                                className="text-sm bg-gray-200 px-2 py-1 rounded hover:bg-gray-300"
+                            >
+                                🔎−
+                            </button>
                         </div>
-                    </div>
-                    <div className="flex flex-auto bg-gray-100">
+                        </div>
+                        </div>
+                    
+                    <div
+                        className="flex flex-auto bg-gray-100"
+                        style={{
+                            fontSize: `${zoomLevel}rem`,
+                            transition: "font-size 0.2s ease",
+                        }}
+                    >
                         {/* Sidebar */}
                         <div className="w-60 p-4 bg-white border-r border-gray-300">
                             <h2 className="text-lg font-bold mb-4">
@@ -370,40 +394,43 @@ function CustomerPage() {
 
                         {/* Product Grid */}
                         <div className="w-3/5 p-6 overflow-y-auto">
-                            <h1 className="text-3xl font-bold mb-6">
-                                {t(categoryDisplayNames[selectedCategory])}
-                            </h1>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                                {translatedProducts
-                                    .filter(
-                                        (p) =>
-                                            p.product_type === selectedCategory,
-                                    )
-                                    .map((product) => (
-                                        <button
-                                            key={product.id}
-                                            onClick={() => openModal(product)}
-                                            className="bg-white p-4 rounded-lg shadow hover:shadow-md cursor-pointer transition"
-                                        >
-                                            <img
-                                                src={getProductImage(
-                                                    product.originalName ||
-                                                        product.name,
-                                                )}
-                                                alt={product.name}
-                                                className="w-full h-40 object-contain rounded mb-2"
-                                            />
-                                            <div className="text-lg font-semibold">
-                                                {product.name}
-                                            </div>
-                                            <div className="text-sm text-gray-500">
-                                                {centsToDollars(product.price)}
-                                            </div>
-                                        </button>
-                                    ))}
-                            </div>
-                        </div>
+                        <h1 className="font-bold mb-6 text-3xl">
+                            {t(categoryDisplayNames[selectedCategory])}
+                        </h1>
 
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+                            {translatedProducts
+                                .filter((p) => p.product_type === selectedCategory)
+                                .map((product) => (
+                                    <button
+                                        key={product.id}
+                                        onClick={() => openModal(product)}
+                                        className="bg-white p-4 rounded-lg shadow hover:shadow-md cursor-pointer transition"
+                                    >
+                                        <img
+                                            src={getProductImage(product.originalName || product.name)}
+                                            alt={product.name}
+                                            style={{
+                                                height: `${8 * zoomLevel}rem`,
+                                            }}
+                                            className="w-full object-contain rounded mb-2"
+                                        />
+                                        <div
+                                            className="font-semibold"
+                                            style={{ fontSize: `${1.1 * zoomLevel}rem` }}
+                                        >
+                                            {product.name}
+                                        </div>
+                                        <div
+                                            className="text-gray-500"
+                                            style={{ fontSize: `${1 * zoomLevel}rem` }}
+                                        >
+                                            {centsToDollars(product.price)}
+                                        </div>
+                                    </button>
+                                ))}
+                        </div>
+                    </div>
                         {/* Cart */}
                         <div className="w-1/4 p-6 bg-white border-l border-gray-300 flex flex-col justify-between">
                             <div>
