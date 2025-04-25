@@ -49,10 +49,9 @@ function CustomerPage() {
     const [quantity, setQuantity] = useState(1);
     const [selectedCategory, setSelectedCategory] =
         useState<string>("milk_tea");
-    const [tapText, setTapText] = useState("Tap to Start");
 
     const paymentTypes = ["Card", "Cash"];
-    const [selectedPaymentType, setSelectedPaymentType] = useState<string>("");
+    const [_, setSelectedPaymentType] = useState<string>("");
 
     const handlePaymentClick = (pt: string) => {
         setSelectedPaymentType(pt);
@@ -273,7 +272,9 @@ function CustomerPage() {
                     />
                     <select
                         value={language}
-                        onChange={(e) => setLanguage(e.target.value as LanguageKey)}
+                        onChange={(e) =>
+                            setLanguage(e.target.value as LanguageKey)
+                        }
                         className="mb-6 border px-4 py-2 rounded"
                     >
                         {Object.entries(languages).map(
@@ -302,19 +303,37 @@ function CustomerPage() {
                         >
                             ← {t("Back to Start")}
                         </button>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 text-gray-500">
                             {tempLoaded && (
                                 <>
                                     <p>
                                         {location} {temp} °F
                                     </p>
-                                    <img src={imageConditionUri} />
+                                    <img className="w-14" src={imageConditionUri} />
                                 </>
                             )}
-                            <span className="text-sm text-gray-500">
-                                {t("Current Language")}:{" "}
-                                {language.toUpperCase()}
-                            </span>
+                            <div className = "flex gap-2 center-items">
+                                <span>
+                                    {t("Current Language")}:
+                                </span>
+                                <select
+                                    className="w-10"
+                                    value={language}
+                                    onChange={(e) =>
+                                        setLanguage(
+                                            e.target.value as LanguageKey,
+                                        )
+                                    }
+                                >
+                                    {Object.entries(languages).map(
+                                        ([value, _]) => (
+                                            <option key={value} value={value}>
+                                                {value.toUpperCase()}
+                                            </option>
+                                        ),
+                                    )}
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div className="flex flex-auto bg-gray-100">
