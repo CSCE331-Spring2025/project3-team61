@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from "react";
 import Modal from "react-modal";
+import BackButton from "../components/back-button";
 
 Modal.setAppElement("#root");
 
@@ -90,8 +91,10 @@ interface Product {
           ];
 
           return(
-<div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-8">Manager Price</h1>
+<div className="container mx-auto p-6 relative">
+      <h1 className="text-3xl font-bold mb-8 text-center">Manager Price</h1>
+        {/* Top-left corner back button */}
+        <BackButton to="/manager-nav" className="absolute top-4 left-4" />
         {categories.map((category) => {
           const filteredProducts = products.filter((p) => p.product_type === category);
           
