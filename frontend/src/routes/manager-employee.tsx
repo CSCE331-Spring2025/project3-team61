@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from "react";
 import Modal from "react-modal";
+import BackButton from "../components/back-button";
 
 Modal.setAppElement("#root");
 
@@ -108,8 +109,10 @@ function ManagerEmployee() {
   const non_admins = employees.filter((e) => !e.admin);
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-8">Manager Employees</h1>
+    <div className="container mx-auto p-6 relative">
+      <h1 className="text-3xl font-bold mb-8 text-center">Manager Employees</h1>
+      {/* Top-left corner back button */}
+      <BackButton to="/manager-nav" className="absolute top-4 left-4" />
 
       {// admin
       }
