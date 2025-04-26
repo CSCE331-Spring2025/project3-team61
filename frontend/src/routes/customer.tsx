@@ -57,6 +57,9 @@ function CustomerPage() {
 
     const [zoomLevel, setZoomLevel] = useState(1);
 
+    const [isPaying, setIsPaying] = useState(false);
+    const [thankYou, setThankYou] = useState(false);
+
 
     const paymentTypes = ["Card", "Cash"];
     const [_, setSelectedPaymentType] = useState<string>("");
@@ -302,7 +305,7 @@ function CustomerPage() {
                 </div>
             )}
 
-            {started && (
+        {started && !isPaying && (
                 <>
                     <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center">
                         <button
@@ -476,22 +479,84 @@ function CustomerPage() {
                                     ))}
                                 </div>
                             </div>
-                            <div className="pt-4 border-t">
-                                <div className="flex justify-between font-bold text-lg">
-                                    <span>{t("Total")}</span>
-                                    <span>{centsToDollars(totalPrice)}</span>
-                                </div>
-                                <button
-                                    className="w-full bg-slate-800 text-white mt-4 py-3 rounded-md text-lg cursor-pointer"
-                                    onClick={() => setPaymentModalOpen(true)}
-                                >
-                                    {t("Pay Now")}
-                                </button>
+                        <div className="pt-4 border-t">
+                            <div className="flex justify-between text-lg">
+                                <span className="font-bold">Subtotal</span>
+                                <span>{centsToDollars(totalPrice)}</span>
+                            </div>
+                            <div className="flex justify-between text-lg mt-1">
+                                <span className="font-bold">Tax</span>
+                                <span>{centsToDollars(totalPrice * 0.0725)}</span>
+                            </div>
+                            <div className="flex justify-between text-xl mt-2 font-bold">
+                                <span>Total</span>
+                                <span>{centsToDollars(totalPrice * 1.0725)}</span>
+                            </div>
+                            
+                            <button
+                                className="w-full bg-slate-800 text-white mt-6 py-3 rounded-md text-lg cursor-pointer"
+                                onClick={() => setIsPaying(true)}
+                            >
+                                {t("Pay Now")}
+                            </button>
                             </div>
                         </div>
                     </div>
                 </>
             )}
+            {/* Payment Page */}
+                    {started && isPaying && (
+                    <div className="p-8 flex flex-col items-center justify-center flex-1">
+                        <button
+                        onClick={() => setIsPaying(false)}
+                        className="text-lg text-blue-600 hover:underline mb-6 w-fit self-start"
+                        >
+                        ← Back
+                        </button>
+
+                        <h1 className="text-4xl font-bold mb-10">Select Payment Method</h1>
+
+                        <div className="flex flex-wrap justify-center items-center gap-20">
+                        <div
+                            onClick={() => {
+                                setIsPaying(false);
+                                setThankYou(true);
+                              }}
+                            className="w-60 h-80 border-2 border-black rounded-lg flex flex-col justify-center items-center cursor-pointer hover:bg-gray-100"
+                        >
+                            <span className="text-3xl font-bold mb-4">Cash</span>
+                            <p className="text-center text-sm mt-6">*Go to the register<br />after completing your order.</p>
+                        </div>
+
+                        <div
+                            onClick={() => {
+                                setIsPaying(false);
+                                setThankYou(true);
+                              }}
+                            className="w-60 h-80 border-2 border-black rounded-lg flex flex-col justify-center items-center cursor-pointer hover:bg-gray-100"
+                        >
+                            <span className="text-3xl font-bold">Credit/Debit</span>
+                        </div>
+                        </div>
+                    </div>
+                    )}
+                    {/* Thank You Screen */}
+                {started && thankYou && (
+                <div className="p-8 flex flex-col items-center justify-center flex-1">
+                    <h1 className="text-5xl font-bold text-green-600 mb-8">🎉 Thank you!</h1>
+                    <p className="text-2xl mb-10 text-center">Your order has been placed successfully.</p>
+                    <button
+                    onClick={() => {
+                        setThankYou(false);
+                        setStarted(false);
+                        setOrderItems([]);
+                    }}
+                    className="bg-slate-800 text-white px-10 py-4 rounded-lg text-xl hover:bg-slate-700"
+                    >
+                    Return to Home
+                    </button>
+                </div>
+                )}
 
             <Modal
                 isOpen={paymentModalOpen}
