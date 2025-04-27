@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { LineChart, BarChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Download, RefreshCw, Filter, Calendar, Clock } from "lucide-react";
+import BackButton from "../components/back-button";
 
 export const Route = createFileRoute("/manager-product-usage")({
   component: ProductUsagePage,
@@ -36,7 +37,7 @@ function ProductUsagePage() {
   // Load data initially and set up polling if needed
   useEffect(() => {
     loadUsage();
-    
+
     return () => {
       if (refreshInterval) clearInterval(refreshInterval);
     };
@@ -60,7 +61,7 @@ function ProductUsagePage() {
       );
       const json = await res.json();
       setUsageData(json);
-      
+
       // Fetch time series data for the chart
       const timeRes = await fetch(
         `/api/product-usage/timeseries?startDate=${dateRange.start}&endDate=${dateRange.end}&startHour=${timeRange.start}&endHour=${timeRange.end}`
@@ -77,11 +78,11 @@ function ProductUsagePage() {
 
   const downloadCSV = () => {
     if (usageData.length === 0) return;
-    
-    const filename = dateRange.start === dateRange.end 
+
+    const filename = dateRange.start === dateRange.end
       ? `Product_Usage_${dateRange.start}_${timeRange.start}-${timeRange.end}.csv`
       : `Product_Usage_${dateRange.start}_to_${dateRange.end}.csv`;
-    
+
     const csv = [
       ["Product Name", "Amount Used"],
       ...usageData.map((row) => [row.product_name, row.count]),
@@ -99,18 +100,18 @@ function ProductUsagePage() {
   // Sort the data based on current sort configuration
   const sortedData = [...usageData].sort((a, b) => {
     if (sortConfig.key === "product_name") {
-      return sortConfig.direction === "asc" 
+      return sortConfig.direction === "asc"
         ? a.product_name.localeCompare(b.product_name)
         : b.product_name.localeCompare(a.product_name);
     } else {
-      return sortConfig.direction === "asc" 
-        ? a.count - b.count 
+      return sortConfig.direction === "asc"
+        ? a.count - b.count
         : b.count - a.count;
     }
   });
 
   // Filter data based on search term
-  const filteredData = sortedData.filter(item => 
+  const filteredData = sortedData.filter(item =>
     item.product_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -132,43 +133,42 @@ function ProductUsagePage() {
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Product Usage Report</h1>
-        <div className="flex gap-2">
-          <button
-            onClick={toggleRefresh}
-            className={`flex items-center gap-1 px-3 py-2 rounded ${
-              refreshInterval ? "bg-blue-100 text-blue-700" : "bg-gray-100"
-            }`}
-            title={refreshInterval ? "Auto-refresh every minute (on)" : "Auto-refresh (off)"}
-          >
-            <RefreshCw size={16} />
-            {refreshInterval ? "Auto" : "Manual"}
-          </button>
-          <button
-            onClick={() => setViewMode("table")}
-            className={`px-3 py-2 rounded ${
-              viewMode === "table" ? "bg-blue-600 text-white" : "bg-gray-100"
-            }`}
-          >
-            Table
-          </button>
-          <button
-            onClick={() => setViewMode("bar")}
-            className={`px-3 py-2 rounded ${
-              viewMode === "bar" ? "bg-blue-600 text-white" : "bg-gray-100"
-            }`}
-          >
-            Bar Chart
-          </button>
-          <button
-            onClick={() => setViewMode("time")}
-            className={`px-3 py-2 rounded ${
-              viewMode === "time" ? "bg-blue-600 text-white" : "bg-gray-100"
-            }`}
-          >
-            Time Series
-          </button>
+      {/* Header with back button properly integrated */}
+      <div className="mb-6">
+        <div className="flex items-center mb-4">
+          <BackButton to="/manager-nav" className="mr-4" />
+          <h1 className="text-3xl font-bold">Product Usage Report</h1>
+        </div>
+        
+        <div className="flex justify-end">
+          <div className="flex gap-2">
+            <button
+              onClick={toggleRefresh}
+              className={`flex items-center gap-1 px-3 py-2 rounded ${refreshInterval ? "bg-blue-100 text-blue-700" : "bg-gray-100"}`}
+              title={refreshInterval ? "Auto-refresh every minute (on)" : "Auto-refresh (off)"}
+            >
+              <RefreshCw size={16} />
+              {refreshInterval ? "Auto" : "Manual"}
+            </button>
+            <button
+              onClick={() => setViewMode("table")}
+              className={`px-3 py-2 rounded ${viewMode === "table" ? "bg-blue-600 text-white" : "bg-gray-100"}`}
+            >
+              Table
+            </button>
+            <button
+              onClick={() => setViewMode("bar")}
+              className={`px-3 py-2 rounded ${viewMode === "bar" ? "bg-blue-600 text-white" : "bg-gray-100"}`}
+            >
+              Bar Chart
+            </button>
+            <button
+              onClick={() => setViewMode("time")}
+              className={`px-3 py-2 rounded ${viewMode === "time" ? "bg-blue-600 text-white" : "bg-gray-100"}`}
+            >
+              Time Series
+            </button>
+          </div>
         </div>
       </div>
 
@@ -272,7 +272,7 @@ function ProductUsagePage() {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort("product_name")}
                   >
@@ -281,7 +281,7 @@ function ProductUsagePage() {
                       <span className="ml-1">{sortConfig.direction === "asc" ? "↑" : "↓"}</span>
                     )}
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort("count")}
                   >
@@ -357,11 +357,11 @@ function ProductUsagePage() {
                 <Tooltip />
                 <Legend />
                 {topProducts.map((product, index) => (
-                  <Line 
+                  <Line
                     key={product.product_name}
-                    type="monotone" 
-                    dataKey={product.product_name} 
-                    stroke={`hsl(${index * 60}, 70%, 50%)`} 
+                    type="monotone"
+                    dataKey={product.product_name}
+                    stroke={`hsl(${index * 60}, 70%, 50%)`}
                     activeDot={{ r: 8 }}
                   />
                 ))}

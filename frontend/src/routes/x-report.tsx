@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Printer, Download, RefreshCw, ArrowRight } from "lucide-react";
+import BackButton from "../components/back-button";
 
 export const Route = createFileRoute("/x-report")({
   component: XReportPage,
@@ -20,28 +21,28 @@ function XReportPage() {
   // Calculate summary data
   const summary = data.length > 0
     ? data.reduce((acc, row) => {
-        return {
-          total_orders: acc.total_orders + Number(row.total_orders),
-          total_sales: acc.total_sales + row.total_sales,
-          cash_sales: acc.cash_sales + row.cash_sales,
-          card_sales: acc.card_sales + row.card_sales,
-          check_sales: acc.check_sales + row.check_sales,
-          gift_card_sales: acc.gift_card_sales + row.gift_card_sales,
-          returns: acc.returns + row.returns,
-          voids: acc.voids + row.voids,
-          discards: acc.discards + row.discards,
-        };
-      }, {
-        total_orders: 0,
-        total_sales: 0,
-        cash_sales: 0,
-        card_sales: 0,
-        check_sales: 0,
-        gift_card_sales: 0,
-        returns: 0,
-        voids: 0,
-        discards: 0,
-      })
+      return {
+        total_orders: acc.total_orders + Number(row.total_orders),
+        total_sales: acc.total_sales + row.total_sales,
+        cash_sales: acc.cash_sales + row.cash_sales,
+        card_sales: acc.card_sales + row.card_sales,
+        check_sales: acc.check_sales + row.check_sales,
+        gift_card_sales: acc.gift_card_sales + row.gift_card_sales,
+        returns: acc.returns + row.returns,
+        voids: acc.voids + row.voids,
+        discards: acc.discards + row.discards,
+      };
+    }, {
+      total_orders: 0,
+      total_sales: 0,
+      cash_sales: 0,
+      card_sales: 0,
+      check_sales: 0,
+      gift_card_sales: 0,
+      returns: 0,
+      voids: 0,
+      discards: 0,
+    })
     : null;
 
   const loadReport = async () => {
@@ -66,13 +67,13 @@ function XReportPage() {
   const handlePrint = () => {
     const content = printRef.current;
     if (!content) return;
-    
+
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       alert("Please allow pop-ups for printing functionality.");
       return;
     }
-    
+
     // Create print content
     const formattedDate = new Date(date).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -160,17 +161,17 @@ function XReportPage() {
         </body>
       </html>
     `);
-    
+
     printWindow.document.close();
   };
 
   // Download CSV functionality
   const downloadCSV = () => {
     if (data.length === 0) return;
-    
+
     const headers = ['Hour', 'Total Orders', 'Total Sales', 'Cash', 'Card', 'Check', 'Gift Card', 'Returns', 'Voids', 'Discards'];
     const csvRows = [headers.join(',')];
-    
+
     // Add data rows
     data.forEach(row => {
       const values = [
@@ -187,7 +188,7 @@ function XReportPage() {
       ];
       csvRows.push(values.join(','));
     });
-    
+
     // Add summary row if data exists
     if (summary) {
       csvRows.push([
@@ -203,7 +204,7 @@ function XReportPage() {
         summary.discards.toFixed(2)
       ].join(','));
     }
-    
+
     const csvContent = 'data:text/csv;charset=utf-8,' + csvRows.join('\n');
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
@@ -222,7 +223,9 @@ function XReportPage() {
   });
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-gray-50 min-h-screen relative">
+    {/* Back Button */}
+    <BackButton to="/manager-nav" className="absolute top-6 left-6 z-50" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white shadow-lg rounded-lg overflow-hidden">
           {/* Header Section */}
@@ -354,7 +357,7 @@ function XReportPage() {
                         <td className="px-4 py-3 text-sm text-gray-600 text-right">${row.discards.toFixed(2)}</td>
                       </tr>
                     ))}
-                    
+
                     {/* Summary Row */}
                     {summary && (
                       <tr className="bg-blue-50 border-t-2 border-blue-200">

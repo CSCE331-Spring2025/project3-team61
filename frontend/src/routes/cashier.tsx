@@ -32,6 +32,8 @@ interface Product {
     name: string;
     price: number;
     inventory: number;
+    calories: number;
+    img_src: string;
 }
 
 const imgSize = "30";
@@ -107,12 +109,19 @@ const ProductButton: FC<{
 
     return (
         <>
-            <button onClick={() => setIsModalOpen(true)}>
+            <button onClick={() => setIsModalOpen(true)} className="cursor-pointer">
                 <div className="bg-white p-4 rounded-md min-w-70 flex flex-col content center">
-                    <div className="bg-gray-300 min-w-50 min-h-35 rounded-md flex flex-wrap justify-center content-center">
-                        <div className="text-gray-100 font-bold">
-                            {product.name}
-                        </div>
+                    <div className="bg-white min-w-50 h-35 rounded-md flex flex-wrap justify-center content-center">
+                        <img
+                            className="max-h-35 max-w-50"
+                            src={imgPath(product.img_src)}
+                            alt={product.name}
+                        />
+                        {
+                            // <div className="text-gray-100 font-bold">
+                            //     {product.name}
+                            // </div>
+                        }
                     </div>
                     <div className="font-bold mt-2">{product.name}</div>
                     <div>{centsToDollars(product.price)}</div>
@@ -133,7 +142,7 @@ const ProductButton: FC<{
                             </button>
                         </div>
                         <div className="text-gray-400 font-bold">
-                            {centsToDollars(product.price)}
+                            {centsToDollars(product.price)} • {product.calories} cal
                         </div>
                     </div>
                     <div className="p-4">
@@ -350,6 +359,10 @@ function Cashier() {
             </div>
         </div>
     );
+}
+
+function imgPath(img_src: string): string {
+    return "/static/" + img_src;
 }
 
 function centsToDollars(cents: number): string {
