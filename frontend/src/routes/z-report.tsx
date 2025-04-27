@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Printer, Download, RefreshCw, ArrowRight, BarChart3, CreditCard, DollarSign, Receipt } from "lucide-react";
+import BackButton from "../components/back-button";
 
 export const Route = createFileRoute("/z-report")({
   component: ZReportPage,
@@ -33,22 +34,22 @@ function ZReportPage() {
   };
 
   const formattedDate = new Date(date).toLocaleDateString("en-US", {
-    weekday: "long", 
-    year: "numeric", 
-    month: "long", 
+    weekday: "long",
+    year: "numeric",
+    month: "long",
     day: "numeric"
   });
 
   const handlePrint = () => {
     const content = printRef.current;
     if (!content) return;
-    
+
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       alert("Please allow pop-ups for printing functionality.");
       return;
     }
-    
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
@@ -181,20 +182,20 @@ function ZReportPage() {
         </body>
       </html>
     `);
-    
+
     printWindow.document.close();
   };
 
   // Download CSV functionality
   const downloadCSV = () => {
     if (!report) return;
-    
+
     const headers = [
-      'Date', 
-      'Total Transactions', 
-      'Gross Sales', 
-      'Net Revenue', 
-      'Sales Tax', 
+      'Date',
+      'Total Transactions',
+      'Gross Sales',
+      'Net Revenue',
+      'Sales Tax',
       'Total With Tax',
       'Cash Payments',
       'Card Payments',
@@ -202,7 +203,7 @@ function ZReportPage() {
       'Voids',
       'Discards'
     ];
-    
+
     const values = [
       date,
       report.totalTransactions,
@@ -216,11 +217,11 @@ function ZReportPage() {
       report.voids.toFixed(2),
       report.discards.toFixed(2)
     ];
-    
-    const csvContent = 'data:text/csv;charset=utf-8,' + 
+
+    const csvContent = 'data:text/csv;charset=utf-8,' +
       headers.join(',') + '\n' +
       values.join(',');
-    
+
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
@@ -232,6 +233,8 @@ function ZReportPage() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
+      {/* Back Button */}
+      <BackButton to="/manager-nav" className="absolute top-6 left-6 z-50" />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white shadow-lg rounded-lg overflow-hidden">
           {/* Header Section */}
@@ -347,7 +350,7 @@ function ZReportPage() {
                   </div>
                 </section>
 
-                <section>                
+                <section>
                   <div className="flex items-center mb-3">
                     <CreditCard size={20} className="text-blue-600 mr-2" />
                     <h2 className="text-xl font-semibold text-gray-800">Payments</h2>

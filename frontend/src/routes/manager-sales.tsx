@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import * as RechartsOriginal from "recharts";
+import BackButton from "../components/back-button";
 
 // Create properly typed components by casting
 const {
@@ -295,28 +296,33 @@ function SalesReportPage() {
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center">
-        <h1 className="text-3xl font-bold">Sales Performance Analytics</h1>
+      {/* Header with Back Button and Title */}
+      <div className="flex items-center gap-4 mb-6">
+        <BackButton to="/manager-nav" className="flex-shrink-0" />
+        
+        <div className="flex flex-col sm:flex-row w-full justify-between sm:items-center">
+          <h1 className="text-3xl font-bold">Sales Performance Analytics</h1>
 
-        <div className="flex gap-2 mt-4 sm:mt-0">
-          <button
-            onClick={() => setViewMode("table")}
-            className={`px-3 py-1 rounded text-sm ${viewMode === "table" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-          >
-            Table View
-          </button>
-          <button
-            onClick={() => setViewMode("chart")}
-            className={`px-3 py-1 rounded text-sm ${viewMode === "chart" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-          >
-            Charts
-          </button>
-          <button
-            onClick={() => setViewMode("dashboard")}
-            className={`px-3 py-1 rounded text-sm ${viewMode === "dashboard" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-          >
-            Dashboard
-          </button>
+          <div className="flex gap-2 mt-4 sm:mt-0">
+            <button
+              onClick={() => setViewMode("table")}
+              className={`px-3 py-1 rounded text-sm ${viewMode === "table" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+            >
+              Table View
+            </button>
+            <button
+              onClick={() => setViewMode("chart")}
+              className={`px-3 py-1 rounded text-sm ${viewMode === "chart" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+            >
+              Charts
+            </button>
+            <button
+              onClick={() => setViewMode("dashboard")}
+              className={`px-3 py-1 rounded text-sm ${viewMode === "dashboard" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+            >
+              Dashboard
+            </button>
+          </div>
         </div>
       </div>
 
