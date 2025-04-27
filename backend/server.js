@@ -81,7 +81,7 @@ passport.use(
             const email = profile._json.email;
             try {
                 const queryRes = await pool.query(
-                    "SELECT name, admin FROM employee WHERE email = $1;",
+                    "SELECT id, name, admin FROM employee WHERE email = $1;",
                     [email],
                 );
 
@@ -91,7 +91,7 @@ passport.use(
                     });
                 }
 
-                return done(null, profile);
+                return done(null, queryRes.rows[0]);
             } catch (err) {
                 return done(err);
             }
@@ -238,31 +238,66 @@ app.post("/api/products", async (req, res) => {
 //      ]
 // }
 app.post("/api/transaction", async (req, res) => {
-    const { employee, paymentType, tip, items } = req.body;
+    let employee;
 
-    if (!employee || !paymentType || !tip || !items) {
-        res.status(400).json({
-            error: "Missing requied fields in request body",
-        });
-        return;
+    if (req.user === undefined) {
+        // not logged in (customer page)
+        employee = null;
+    } else {
+        // loggined in (cashier page)
+        employee = req.user.id
     }
+
+    const { paymentType, items } = req.body;
 
     let products = {};
 
     try {
-        queryRes = pool.query("SELECT * from product;");
-        queryRows.rows.map((p) => (products[p.id] = p));
+        const queryRes = await pool.query("SELECT * from product;");
+        queryRes.rows.map((p) => (products[p.name] = p));
     } catch (err) {
+        console.error("Error:", err);
         res.status(500).send(err);
         return;
     }
 
     const price = items.reduce(
-        (price, item) => price + products[item.id].price * item.quantity,
+        (price, item) => price + products[item.name].price * item.quantity,
         0,
     );
 
-    console.log("price", price);
+    let transactionId;
+
+    try {
+        const queryRes = await pool.query(
+            `
+            INSERT INTO transaction (payment_type, price, employee_id)
+                VALUES ($1, $2, $3)
+            RETURNING id;
+            `,
+            [paymentType, price, employee],
+        );
+        transactionId = queryRes.rows[0].id;
+    } catch (err) {
+        console.error(err);
+    }
+
+    let transactionItemsQuery = `
+        INSERT INTO transaction_item (transaction_id, product_id, quantity, subtotal)
+        VALUES
+    `;
+
+    for (const item of items) {
+        let subtotal = item.price * item.quantity;
+        transactionItemsQuery += `(${transactionId}, ${products[item.name].id}, ${item.quantity}, ${subtotal}),`;
+    }
+    transactionItemsQuery = transactionItemsQuery.slice(0, -1) + ";";
+
+    try {
+        await pool.query(transactionItemsQuery, []);
+    } catch (err) {
+        console.error(err);
+    }
 });
 
 app.get("/api/employee", (req, res) => {
@@ -1092,7 +1127,15 @@ app.get("/static/*", (req, res) => {
     res.sendFile(path.resolve(__dirname, path.join(".", req.url)));
 });
 
-app.get("*", isAuthenticated, (_, res) => {
+app.get("/employee-nav", isAuthenticated, (_, res) => {
+    sendIndex(res);
+});
+
+app.get("/cashier", isAuthenticated, (_, res) => {
+    sendIndex(res);
+});
+
+app.get("*", isAuthenticated, isAdmin, (_, res) => {
     sendIndex(res);
 });
 
@@ -1102,6 +1145,13 @@ app.listen(PORT, "0.0.0.0", () => {
 
 function isAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
+        return next();
+    }
+    res.redirect("/");
+}
+
+function isAdmin(req, res, next) {
+    if (req.user.admin) {
         return next();
     }
     res.redirect("/");

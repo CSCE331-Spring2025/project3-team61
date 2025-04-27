@@ -44,8 +44,6 @@ function CustomerPage() {
     const [drinkCustomizeModalOpen, setDrinkCustomizeModalOpen] =
         useState<boolean>(false);
 
-    const [paymentModalOpen, setPaymentModalOpen] = useState<boolean>(false);
-
     const sizes = ["Small", "Regular", "Large"];
     const iceLevels = ["No Ice", "Less Ice", "Regular", "Extra Ice"];
     const sugarLevels = ["0%", "25%", "50%", "75%", "100%"];
@@ -62,18 +60,27 @@ function CustomerPage() {
     const [thankYou, setThankYou] = useState(false);
 
     const paymentTypes = ["Card", "Cash"];
-    const [_, setSelectedPaymentType] = useState<string>("");
-
-    const handlePaymentClick = (pt: string) => {
-        setSelectedPaymentType(pt);
-        setPaymentModalOpen(false);
-        setOrderItems([]);
-    };
 
     const handlePayNow = () => {
         if (orderItems.length > 0) {
             setIsPaying(true);
         }
+    };
+
+    const handlePaymentSelected = (pt: string) => {
+        fetch("/api/transaction", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                paymentType: pt,
+                items: orderItems,
+            }),
+        }).catch((err) => console.error(err));
+        setOrderItems([]);
+        setIsPaying(false);
+        setThankYou(true);
     };
 
     type LanguageKey =
@@ -553,9 +560,7 @@ function CustomerPage() {
                     <div className="flex flex-wrap justify-center items-center gap-20">
                         <div
                             onClick={() => {
-                                setIsPaying(false);
-                                setThankYou(true);
-                                setOrderItems([]);
+                                handlePaymentSelected("cash");
                             }}
                             className="w-60 h-80 border-2 border-black rounded-lg flex flex-col justify-center items-center cursor-pointer hover:bg-gray-100"
                         >
@@ -572,9 +577,7 @@ function CustomerPage() {
 
                         <div
                             onClick={() => {
-                                setIsPaying(false);
-                                setThankYou(true);
-                                setOrderItems([]);
+                                handlePaymentSelected("card");
                             }}
                             className="w-60 h-80 border-2 border-black rounded-lg flex flex-col justify-center items-center cursor-pointer hover:bg-gray-100"
                         >
@@ -606,29 +609,6 @@ function CustomerPage() {
                     </button>
                 </div>
             )}
-
-            <Modal
-                isOpen={paymentModalOpen}
-                onRequestClose={() => setPaymentModalOpen(false)}
-                contentLabel="Payment Type"
-                className="w-full max-w-xl mx-auto mt-20 bg-white p-6 rounded-xl shadow-xl"
-                // overlayClassName="fixed inset-0 bg-white flex justify-center items-start z-50"
-            >
-                <h2 className="text-2xl font-bold mb-4">
-                    {t("Select Payment Type")}
-                </h2>
-                <div className="flex flex-col gap-4">
-                    {paymentTypes.map((pt) => (
-                        <button
-                            key={pt}
-                            className="border-3 border-stone-400 p-5 rounded-xl hover:border-slate-900 cursor-pointer font-bold text-xl"
-                            onClick={() => handlePaymentClick(pt)}
-                        >
-                            {t(pt)}
-                        </button>
-                    ))}
-                </div>
-            </Modal>
 
             <Modal
                 isOpen={drinkCustomizeModalOpen}

@@ -105,11 +105,15 @@ const ProductButton: FC<{
 
         addItem(order);
         setIsModalOpen(false);
+        setQuantity(1)
     };
 
     return (
         <>
-            <button onClick={() => setIsModalOpen(true)} className="cursor-pointer">
+            <button
+                onClick={() => setIsModalOpen(true)}
+                className="cursor-pointer"
+            >
                 <div className="bg-white p-4 rounded-md min-w-70 flex flex-col content center">
                     <div className="bg-white min-w-50 h-35 rounded-md flex flex-wrap justify-center content-center">
                         <img
@@ -142,7 +146,8 @@ const ProductButton: FC<{
                             </button>
                         </div>
                         <div className="text-gray-400 font-bold">
-                            {centsToDollars(product.price)} • {product.calories} cal
+                            {centsToDollars(product.price)} • {product.calories}{" "}
+                            cal
                         </div>
                     </div>
                     <div className="p-4">
@@ -218,6 +223,9 @@ function Cashier() {
     const [products, setProducts] = useState<Product[]>([]);
     const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
     const [totalPrice, setTotalPrice] = useState<number>(0);
+    const [isPaying, setIsPaying] = useState<boolean>(false);
+
+    const paymentTypes = ["card", "cash"];
 
     useEffect(() => {
         const getProducts = () => {
@@ -238,8 +246,22 @@ function Cashier() {
         });
     }, [orderItems]);
 
-    const handlePayNow = () => {
+    const handlePaymentSelected = (pt: string) => {
+        if (orderItems.length === 0) return;
+
+        fetch("/api/transaction", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                paymentType: pt,
+                items: orderItems,
+            }),
+        }).catch((err) => console.error(err));
         setOrderItems([]);
+        setIsPaying(false);
+
     };
 
     const addItem = (oi: OrderItem) => {
@@ -256,6 +278,7 @@ function Cashier() {
         <div className="flex justify-center h-screen">
             <div className="max-w-screen-2xl h-screen">
                 <div className="flex h-screen">
+                    {/* Left Panel */}
                     <div className="min-w-xs">
                         <button
                             className="flex w-60 h-10 flex-wrap content-center mt-3 bg-gray-200 rounded-lg cursor-pointer"
@@ -269,7 +292,8 @@ function Cashier() {
                             <div className="font-bold">Back</div>
                         </button>
                     </div>
-                    <div className="flex flex-wrap gap-4 grow bg-gray-100 justify-center h-screen pt-5">
+                    { /* Center Panel */}
+                    <div className="flex flex-wrap gap-4 grow bg-gray-100 justify-center h-screen pt-5 overflow-auto">
                         {products.map((product) => (
                             <ProductButton
                                 key={product.name}
@@ -278,6 +302,7 @@ function Cashier() {
                             />
                         ))}
                     </div>
+                    {/* Right Panel */}
                     <div className="min-w-xs">
                         <div className="min-h-15 flex justify-end border-b-3 border-b-gray-200">
                             <img
@@ -349,7 +374,7 @@ function Cashier() {
                             </div>
                             <button
                                 className="w-full bg-slate-700 text-white h-15 rounded-lg font-bold mt-10"
-                                onClick={handlePayNow}
+                                onClick={() => setIsPaying(true)}
                             >
                                 Pay Now
                             </button>
@@ -357,6 +382,27 @@ function Cashier() {
                     </div>
                 </div>
             </div>
+
+            <Modal
+                isOpen={isPaying}
+                onRequestClose={() => setIsPaying(false)}
+                contentLabel="Payment Type"
+                className="w-full max-w-xl mx-auto mt-20 bg-white p-6 rounded-xl shadow-xl"
+                // overlayClassName="fixed inset-0 bg-white flex justify-center items-start z-50"
+            >
+                <h2 className="text-2xl font-bold mb-4">Select Payment Type</h2>
+                <div className="flex flex-col gap-4">
+                    {paymentTypes.map((pt) => (
+                        <button
+                            key={pt}
+                            className="border-3 border-stone-400 p-5 rounded-xl hover:border-slate-900 cursor-pointer font-bold text-xl"
+                            onClick={() => handlePaymentSelected(pt)}
+                        >
+                            {pt}
+                        </button>
+                    ))}
+                </div>
+            </Modal>
         </div>
     );
 }
