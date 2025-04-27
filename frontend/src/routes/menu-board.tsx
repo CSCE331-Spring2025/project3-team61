@@ -26,6 +26,7 @@ interface Product {
     image_url?: string;
     originalName?: string; // Added for image lookup
     calories: number;
+    img_src: string;
 }
 
 function MenuBoard() {
@@ -69,7 +70,7 @@ function MenuBoard() {
                 const updatedProducts = res_json.map((product: Product) => ({
                     ...product,
                     originalName: product.name,
-                    image_url: getProductImage(product.name),
+                    image_url: imgPath(product.img_src),
                 }));
                 setProducts(updatedProducts);
             })
@@ -601,36 +602,11 @@ function MenuBoard() {
     );
 }
 
-function getProductImage(name: string): string {
-    const images: Record<string, string> = {
-        "Classic Milk Tea": "/classic_milk_tea.png",
-        "Fresh Taro Milk": "/taro_tea.png",
-        "Vanilla Ice Cream": "/vanilla.png",
-        "Matcha Fresh Milk": "/matcha.png",
-        "Mocha Ice Blended": "/mocha-tea.png",
-        "Chocolate Ice Cream": "/chocolate.png",
-        "Strawberry Ice Cream": "/strawberry.png",
-        "Earl Grey Tea": "/earl.png",
-        "Jasmine Green Tea": "/jasmine.png",
-        "Okinawa Milk Tea": "/okinawa.png",
-        "Mango Fruit Tea": "/mango-tea.png",
-        "Strawberry Fruit Tea": "/strawberry-tea.png",
-        "Caramel Ice Blended": "/caramel-blended.png",
-        "Lemon Tea Mojito": "/lemon-moj.png",
-        "Passionfruit Tea Mojito": "/passion-moj.png",
-        "Black Tea Crema": "/black-crema.png",
-        "Oolong Crema": "/oolong.png",
-        "Bottled Water": "/water.png",
-        "Canned Soda": "/soda.png",
-        "Limited Edition Tea": "/limited.png",
-        "Pearl Topping": "/pearl.png",
-    };
-
-    return images[name] || "/default.png"; // fallback image
+function imgPath(img_src: string): string {
+    return "/static/" + img_src;
 }
 
 function centsToDollars(cents: number): string {
     const dollars = cents / 100;
     return "$" + dollars.toFixed(2);
 }
-
