@@ -18,7 +18,7 @@ interface Product {
     originalName?: string; // Used for image lookup
     calories: number;
     allergens: string[];
-    img_src: string,
+    img_src: string;
 }
 
 interface OrderItem {
@@ -61,7 +61,6 @@ function CustomerPage() {
     const [isPaying, setIsPaying] = useState(false);
     const [thankYou, setThankYou] = useState(false);
 
-
     const paymentTypes = ["Card", "Cash"];
     const [_, setSelectedPaymentType] = useState<string>("");
 
@@ -69,6 +68,12 @@ function CustomerPage() {
         setSelectedPaymentType(pt);
         setPaymentModalOpen(false);
         setOrderItems([]);
+    };
+
+    const handlePayNow = () => {
+        if (orderItems.length > 0) {
+            setIsPaying(true);
+        }
     };
 
     type LanguageKey =
@@ -172,7 +177,14 @@ function CustomerPage() {
             "Sugar Level",
             "Ice Level",
             "Add to Order",
-            "Select Payment Type",
+            "Select Payment Method",
+            "Credit/Debit",
+            "Go to the register after completing your order",
+            "Thank you!",
+            "Return to Home",
+            "Your order has been placed successfully",
+            "Calories",
+            "Allergens",
             ...sizes,
             ...sugarLevels,
             ...iceLevels,
@@ -306,7 +318,7 @@ function CustomerPage() {
                 </div>
             )}
 
-        {started && !isPaying && (
+            {started && !isPaying && (
                 <>
                     <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center">
                         <button
@@ -348,22 +360,30 @@ function CustomerPage() {
                                 </select>
                             </div>
                             <div className="flex gap-1 items-center">
-                            <button
-                                onClick={() => setZoomLevel((prev) => Math.min(prev + 0.1, 1.5))}
-                                className="text-sm bg-gray-200 px-2 py-1 rounded hover:bg-gray-300"
-                            >
-                                🔍+
-                            </button>
-                            <button
-                                onClick={() => setZoomLevel((prev) => Math.max(prev - 0.1, 0.8))}
-                                className="text-sm bg-gray-200 px-2 py-1 rounded hover:bg-gray-300"
-                            >
-                                🔎−
-                            </button>
+                                <button
+                                    onClick={() =>
+                                        setZoomLevel((prev) =>
+                                            Math.min(prev + 0.1, 1.5),
+                                        )
+                                    }
+                                    className="text-sm bg-gray-200 px-2 py-1 rounded hover:bg-gray-300"
+                                >
+                                    🔍+
+                                </button>
+                                <button
+                                    onClick={() =>
+                                        setZoomLevel((prev) =>
+                                            Math.max(prev - 0.1, 0.8),
+                                        )
+                                    }
+                                    className="text-sm bg-gray-200 px-2 py-1 rounded hover:bg-gray-300"
+                                >
+                                    🔎−
+                                </button>
+                            </div>
                         </div>
-                        </div>
-                        </div>
-                    
+                    </div>
+
                     <div
                         className="flex flex-auto bg-gray-100"
                         style={{
@@ -398,43 +418,50 @@ function CustomerPage() {
 
                         {/* Product Grid */}
                         <div className="w-3/5 p-6 overflow-y-auto">
-                        <h1 className="font-bold mb-6 text-3xl">
-                            {t(categoryDisplayNames[selectedCategory])}
-                        </h1>
+                            <h1 className="font-bold mb-6 text-3xl">
+                                {t(categoryDisplayNames[selectedCategory])}
+                            </h1>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                            {translatedProducts
-                                .filter((p) => p.product_type === selectedCategory)
-                                .map((product) => (
-                                    <button
-                                        key={product.id}
-                                        onClick={() => openModal(product)}
-                                        className="bg-white p-4 rounded-lg shadow hover:shadow-md cursor-pointer transition"
-                                    >
-                                        <img
-                                            src={imgPath(product.img_src)}
-                                            alt={product.name}
-                                            style={{
-                                                height: `${8 * zoomLevel}rem`,
-                                            }}
-                                            className="w-full object-contain rounded mb-2"
-                                        />
-                                        <div
-                                            className="font-semibold"
-                                            style={{ fontSize: `${1.1 * zoomLevel}rem` }}
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+                                {translatedProducts
+                                    .filter(
+                                        (p) =>
+                                            p.product_type === selectedCategory,
+                                    )
+                                    .map((product) => (
+                                        <button
+                                            key={product.id}
+                                            onClick={() => openModal(product)}
+                                            className="bg-white p-4 rounded-lg shadow hover:shadow-md cursor-pointer transition"
                                         >
-                                            {product.name}
-                                        </div>
-                                        <div
-                                            className="text-gray-500"
-                                            style={{ fontSize: `${1 * zoomLevel}rem` }}
-                                        >
-                                            {centsToDollars(product.price)}
-                                        </div>
-                                    </button>
-                                ))}
+                                            <img
+                                                src={imgPath(product.img_src)}
+                                                alt={product.name}
+                                                style={{
+                                                    height: `${8 * zoomLevel}rem`,
+                                                }}
+                                                className="w-full object-contain rounded mb-2"
+                                            />
+                                            <div
+                                                className="font-semibold"
+                                                style={{
+                                                    fontSize: `${1.1 * zoomLevel}rem`,
+                                                }}
+                                            >
+                                                {product.name}
+                                            </div>
+                                            <div
+                                                className="text-gray-500"
+                                                style={{
+                                                    fontSize: `${1 * zoomLevel}rem`,
+                                                }}
+                                            >
+                                                {centsToDollars(product.price)}
+                                            </div>
+                                        </button>
+                                    ))}
+                            </div>
                         </div>
-                    </div>
                         {/* Cart */}
                         <div className="w-1/4 p-6 bg-white border-l border-gray-300 flex flex-col justify-between">
                             <div>
@@ -480,84 +507,105 @@ function CustomerPage() {
                                     ))}
                                 </div>
                             </div>
-                        <div className="pt-4 border-t">
-                            <div className="flex justify-between text-lg">
-                                <span className="font-bold">Subtotal</span>
-                                <span>{centsToDollars(totalPrice)}</span>
-                            </div>
-                            <div className="flex justify-between text-lg mt-1">
-                                <span className="font-bold">Tax</span>
-                                <span>{centsToDollars(totalPrice * 0.0725)}</span>
-                            </div>
-                            <div className="flex justify-between text-xl mt-2 font-bold">
-                                <span>Total</span>
-                                <span>{centsToDollars(totalPrice * 1.0725)}</span>
-                            </div>
-                            
-                            <button
-                                className="w-full bg-slate-800 text-white mt-6 py-3 rounded-md text-lg cursor-pointer"
-                                onClick={() => setIsPaying(true)}
-                            >
-                                {t("Pay Now")}
-                            </button>
+                            <div className="pt-4 border-t">
+                                <div className="flex justify-between text-lg">
+                                    <span className="font-bold">Subtotal</span>
+                                    <span>{centsToDollars(totalPrice)}</span>
+                                </div>
+                                <div className="flex justify-between text-lg mt-1">
+                                    <span className="font-bold">Tax</span>
+                                    <span>
+                                        {centsToDollars(totalPrice * 0.0725)}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between text-xl mt-2 font-bold">
+                                    <span>Total</span>
+                                    <span>
+                                        {centsToDollars(totalPrice * 1.0725)}
+                                    </span>
+                                </div>
+
+                                <button
+                                    className="w-full bg-slate-800 text-white mt-6 py-3 rounded-md text-lg cursor-pointer"
+                                    onClick={handlePayNow}
+                                >
+                                    {t("Pay Now")}
+                                </button>
                             </div>
                         </div>
                     </div>
                 </>
             )}
             {/* Payment Page */}
-                    {started && isPaying && (
-                    <div className="p-8 flex flex-col items-center justify-center flex-1">
-                        <button
+            {started && isPaying && (
+                <div className="p-8 flex flex-col items-center justify-center flex-1">
+                    <button
                         onClick={() => setIsPaying(false)}
                         className="text-lg text-blue-600 hover:underline mb-6 w-fit self-start"
-                        >
+                    >
                         ← Back
-                        </button>
+                    </button>
 
-                        <h1 className="text-4xl font-bold mb-10">Select Payment Method</h1>
+                    <h1 className="text-4xl font-bold mb-10">
+                        {t("Select Payment Method")}
+                    </h1>
 
-                        <div className="flex flex-wrap justify-center items-center gap-20">
+                    <div className="flex flex-wrap justify-center items-center gap-20">
                         <div
                             onClick={() => {
                                 setIsPaying(false);
                                 setThankYou(true);
-                              }}
+                                setOrderItems([]);
+                            }}
                             className="w-60 h-80 border-2 border-black rounded-lg flex flex-col justify-center items-center cursor-pointer hover:bg-gray-100"
                         >
-                            <span className="text-3xl font-bold mb-4">Cash</span>
-                            <p className="text-center text-sm mt-6">*Go to the register<br />after completing your order.</p>
+                            <span className="text-3xl font-bold mb-4">
+                                {t("Cash")}
+                            </span>
+                            <p className="text-center text-sm mt-6 p-4">
+                                *
+                                {t(
+                                    "Go to the register after completing your order",
+                                )}
+                            </p>
                         </div>
 
                         <div
                             onClick={() => {
                                 setIsPaying(false);
                                 setThankYou(true);
-                              }}
+                                setOrderItems([]);
+                            }}
                             className="w-60 h-80 border-2 border-black rounded-lg flex flex-col justify-center items-center cursor-pointer hover:bg-gray-100"
                         >
-                            <span className="text-3xl font-bold">Credit/Debit</span>
-                        </div>
+                            <span className="text-3xl font-bold">
+                                {t("Credit/Debit")}
+                            </span>
                         </div>
                     </div>
-                    )}
-                    {/* Thank You Screen */}
-                {started && thankYou && (
+                </div>
+            )}
+            {/* Thank You Screen */}
+            {started && thankYou && (
                 <div className="p-8 flex flex-col items-center justify-center flex-1">
-                    <h1 className="text-5xl font-bold text-green-600 mb-8">🎉 Thank you!</h1>
-                    <p className="text-2xl mb-10 text-center">Your order has been placed successfully.</p>
+                    <h1 className="text-5xl font-bold text-green-600 mb-8">
+                        🎉 {t("Thank you!")}
+                    </h1>
+                    <p className="text-2xl mb-10 text-center">
+                        {t("Your order has been placed successfully")}.
+                    </p>
                     <button
-                    onClick={() => {
-                        setThankYou(false);
-                        setStarted(false);
-                        setOrderItems([]);
-                    }}
-                    className="bg-slate-800 text-white px-10 py-4 rounded-lg text-xl hover:bg-slate-700"
+                        onClick={() => {
+                            setThankYou(false);
+                            setStarted(false);
+                            setOrderItems([]);
+                        }}
+                        className="bg-slate-800 text-white px-10 py-4 rounded-lg text-xl hover:bg-slate-700"
                     >
-                    Return to Home
+                        {t("Return to Home")}
                     </button>
                 </div>
-                )}
+            )}
 
             <Modal
                 isOpen={paymentModalOpen}
@@ -593,13 +641,13 @@ function CustomerPage() {
                     {t("Customize")} {selectedProduct?.name}
                 </h2>
                 <div className="text-gray-500">
-                    Calories: {selectedProduct?.calories} cal
+                    {t("Calories")}: {selectedProduct?.calories} cal
                 </div>
                 <div className="text-gray-500 mb-4">
                     {selectedProduct?.allergens !== undefined &&
                         selectedProduct?.allergens.length > 0 && (
                             <div>
-                                Allergens:{" "}
+                                {t("Allergens")}:{" "}
                                 {selectedProduct?.allergens.join(", ")}
                             </div>
                         )}
