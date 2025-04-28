@@ -55,6 +55,7 @@ function CustomerPage() {
         useState<string>("milk_tea");
 
     const [zoomLevel, setZoomLevel] = useState(1);
+    const [contrastMode, setContrastMode] = useState<boolean>(false);
 
     const [isPaying, setIsPaying] = useState(false);
     const [thankYou, setThankYou] = useState(false);
@@ -295,7 +296,7 @@ function CustomerPage() {
     return (
         <div className="relative h-screen flex flex-col">
             {!started && (
-                <div className="absolute inset-0 bg-white flex flex-col items-center justify-center z-50">
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-white">
                     <img
                         src="/Team-61.png"
                         alt="Team 61"
@@ -327,7 +328,7 @@ function CustomerPage() {
 
             {started && !isPaying && (
                 <>
-                    <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center">
+                    <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-white">
                         <button
                             onClick={() => setStarted(false)}
                             className="bg-white border border-gray-300 px-4 py-2 rounded-md shadow hover:bg-gray-100 cursor-pointer"
@@ -335,9 +336,20 @@ function CustomerPage() {
                             ← {t("Back to Start")}
                         </button>
                         <div className="flex items-center gap-4 text-gray-500">
+                            <button
+                                onClick={() => setContrastMode((e) => !e)}
+                                className="bg-white border border-gray-300 px-4 py-2 rounded-md shadow hover:bg-gray-100 cursor-pointer"
+                            >
+                                {contrastMode ? "Disable" : "Enable"} High
+                                Contrast
+                            </button>
                             {tempLoaded && (
                                 <>
-                                    <p>
+                                    <p
+                                        className={
+                                            contrastMode ? "font-bold" : ""
+                                        }
+                                    >
                                         {location} {temp} °F
                                     </p>
                                     <img
@@ -347,7 +359,11 @@ function CustomerPage() {
                                 </>
                             )}
                             <div className="flex gap-2 center-items">
-                                <span>{t("Current Language")}:</span>
+                                <span
+                                    className={contrastMode ? "font-bold" : ""}
+                                >
+                                    {t("Current Language")}:
+                                </span>
                                 <select
                                     className="w-10"
                                     value={language}
@@ -414,7 +430,13 @@ function CustomerPage() {
                                                 selectedCategory === cat
                                                     ? "bg-slate-700 text-white"
                                                     : "hover:bg-gray-100"
-                                            }`}
+                                            }
+                                                ${
+                                                    contrastMode
+                                                        ? "font-bold"
+                                                        : ""
+                                                }
+                                            `}
                                         >
                                             {t(categoryDisplayNames[cat])}
                                         </button>
@@ -439,7 +461,12 @@ function CustomerPage() {
                                         <button
                                             key={product.id}
                                             onClick={() => openModal(product)}
-                                            className="bg-white p-4 rounded-lg shadow hover:shadow-md cursor-pointer transition"
+                                            className={
+                                                "bg-white p-4 rounded-lg shadow hover:shadow-md cursor-pointer transition" +
+                                                (contrastMode
+                                                    ? " border-5"
+                                                    : "")
+                                            }
                                         >
                                             <img
                                                 src={imgPath(product.img_src)}
@@ -458,7 +485,11 @@ function CustomerPage() {
                                                 {product.name}
                                             </div>
                                             <div
-                                                className="text-gray-500"
+                                                className={
+                                                    contrastMode
+                                                        ? "font-bold text-black"
+                                                        : "text-gray-500"
+                                                }
                                                 style={{
                                                     fontSize: `${1 * zoomLevel}rem`,
                                                 }}
@@ -533,7 +564,7 @@ function CustomerPage() {
                                 </div>
 
                                 <button
-                                    className="w-full bg-slate-800 text-white mt-6 py-3 rounded-md text-lg cursor-pointer"
+                                    className="w-full bg-slate-800 text-white mt-6 py-3 rounded-md text-lg cursor-pointer font-bold"
                                     onClick={handlePayNow}
                                 >
                                     {t("Pay Now")}

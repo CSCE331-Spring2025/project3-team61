@@ -34,6 +34,7 @@ interface Product {
     inventory: number;
     calories: number;
     img_src: string;
+    allergens: string[];
 }
 
 const imgSize = "30";
@@ -54,7 +55,8 @@ const ExclusiveButtons: FC<{
         <div className="mt-3 flex justify-around gap-4">
             {options.map((option) => (
                 <button
-                    className={`${option === selectedOption ? "border-3 border-gray-500 bg-gray-100" : " border-2 border-gray-200"} border grow rounded-md h-13 flex justify-center flex-wrap content-center`}
+                    className={`${option === selectedOption ? "border-3 border-gray-500 bg-gray-100" : " border-2 border-gray-200"} 
+                        border grow rounded-md h-13 flex justify-center flex-wrap content-center cursor-pointer`}
                     onClick={() => handleClick(option)}
                 >
                     {option}
@@ -105,7 +107,7 @@ const ProductButton: FC<{
 
         addItem(order);
         setIsModalOpen(false);
-        setQuantity(1)
+        setQuantity(1);
     };
 
     return (
@@ -141,7 +143,10 @@ const ProductButton: FC<{
                             <h2 className="font-bold text-xl">
                                 Customize {product.name}
                             </h2>
-                            <button onClick={() => setIsModalOpen(false)}>
+                            <button
+                                className="cursor-pointer"
+                                onClick={() => setIsModalOpen(false)}
+                            >
                                 Close
                             </button>
                         </div>
@@ -149,6 +154,11 @@ const ProductButton: FC<{
                             {centsToDollars(product.price)} • {product.calories}{" "}
                             cal
                         </div>
+                        {product.allergens.length > 0 && (
+                            <div className="text-gray-400">
+                                Allergens: {product.allergens.join(", ")}
+                            </div>
+                        )}
                     </div>
                     <div className="p-4">
                         <div className="font-bold">Size</div>
@@ -176,6 +186,7 @@ const ProductButton: FC<{
                         <div className="flex justify-between mt-20">
                             <div className="flex text-xl">
                                 <button
+                                    className="cursor-pointer"
                                     onClick={() =>
                                         setQuantity((q) =>
                                             q === 1 ? q : q - 1,
@@ -190,6 +201,7 @@ const ProductButton: FC<{
                                 </button>
                                 <div>{quantity}</div>
                                 <button
+                                    className="cursor-pointer"
                                     onClick={() => setQuantity((q) => q + 1)}
                                 >
                                     <img
@@ -199,13 +211,13 @@ const ProductButton: FC<{
                                     />
                                 </button>
                             </div>
-                            <div className="text-xl">
+                            <div className="text-xl cursor-pointer">
                                 Total:{" "}
                                 {centsToDollars(quantity * product.price)}
                             </div>
                         </div>
                         <button
-                            className="w-full bg-slate-700 text-white mt-15 h-13 flex flex-wrap justify-center content-center rounded-xl"
+                            className="w-full bg-slate-700 text-white mt-15 h-13 flex flex-wrap justify-center content-center rounded-xl cursor-pointer"
                             onClick={handleAddToOrder}
                         >
                             Add to Order
@@ -261,7 +273,6 @@ function Cashier() {
         }).catch((err) => console.error(err));
         setOrderItems([]);
         setIsPaying(false);
-
     };
 
     const addItem = (oi: OrderItem) => {
@@ -292,7 +303,7 @@ function Cashier() {
                             <div className="font-bold">Back</div>
                         </button>
                     </div>
-                    { /* Center Panel */}
+                    {/* Center Panel */}
                     <div className="flex flex-wrap gap-4 grow bg-gray-100 justify-center h-screen pt-5 overflow-auto">
                         {products.map((product) => (
                             <ProductButton
