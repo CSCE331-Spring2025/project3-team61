@@ -1147,7 +1147,7 @@ function isAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
         return next();
     }
-    res.redirect("/");
+    res.redirect("/auth/google");
 }
 
 function isAdmin(req, res, next) {
