@@ -328,7 +328,10 @@ function CustomerPage() {
 
             {started && !isPaying && (
                 <>
-                    <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-white">
+                    <div
+                        role="banner"
+                        className="p-4 border-b border-gray-200 flex justify-between items-center bg-white"
+                    >
                         <button
                             onClick={() => setStarted(false)}
                             className="bg-white border border-gray-300 px-4 py-2 rounded-md shadow hover:bg-gray-100 cursor-pointer"
@@ -415,7 +418,10 @@ function CustomerPage() {
                         }}
                     >
                         {/* Sidebar */}
-                        <div className="w-60 p-4 bg-white border-r border-gray-300">
+                        <div
+                            role="navigation"
+                            className="w-60 p-4 bg-white border-r border-gray-300"
+                        >
                             <h2 className="text-lg font-bold mb-4">
                                 {t("Categories")}
                             </h2>
@@ -446,7 +452,7 @@ function CustomerPage() {
                         </div>
 
                         {/* Product Grid */}
-                        <div className="w-3/5 p-6 overflow-y-auto">
+                        <div role="main" className="w-3/5 p-6 overflow-y-auto">
                             <h1 className="font-bold mb-6 text-3xl">
                                 {t(categoryDisplayNames[selectedCategory])}
                             </h1>
