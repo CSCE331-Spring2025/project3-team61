@@ -120,7 +120,7 @@ function CustomerPage() {
     const AZURE_REGION = import.meta.env.VITE_TRANSLATE_REGION;
 
     const WEATHER_API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
-    const WEATHER_API_URL = `http://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=77840&aqi=no`;
+    const WEATHER_API_URL = `https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=77840&aqi=no`;
 
     const [tempLoaded, setTempLoaded] = useState<boolean>(false);
     const [temp, setTemp] = useState<number>(0);
