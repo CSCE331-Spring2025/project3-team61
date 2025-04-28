@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import Modal from "react-modal";
 import Chatbot from "../components/chatbot";
@@ -29,6 +29,8 @@ interface OrderItem {
 }
 
 function CustomerPage() {
+    const router = useRouter();
+
     const [started, setStarted] = useState(false);
     const [language, setLanguage] = useState<LanguageKey>("en");
     const [translatedText, setTranslatedText] = useState<
@@ -322,6 +324,12 @@ function CustomerPage() {
                         className="bg-slate-800 text-white px-12 py-6 rounded-full text-3xl shadow-lg hover:bg-slate-700 cursor-pointer transition"
                     >
                         {t("Tap to Start")}
+                    </button>
+                    <button
+                        onClick={() => router.history.back()}
+                        className="mt-4 bg-gray-400 text-white px-7 py-2 rounded-full text-m shadow-lg hover:bg-gray-700 cursor-pointer transition"
+                    >
+                        Back
                     </button>
                 </div>
             )}
