@@ -195,8 +195,11 @@ function CustomerPage() {
             "Your order has been placed successfully",
             "Calories",
             "Allergens",
+            "Back",
+            "Disable High Contrast",
+            "Enable High Contrast",
             ...sizes,
-            ...sugarLevels,
+            ...sugarLevels.map(t => t + " sugar"),
             ...iceLevels,
             ...paymentTypes,
             ...products.map((p) => p.name),
@@ -329,7 +332,7 @@ function CustomerPage() {
                         onClick={() => router.history.back()}
                         className="mt-4 bg-gray-400 text-white px-7 py-2 rounded-full text-m shadow-lg hover:bg-gray-700 cursor-pointer transition"
                     >
-                        Back
+                        {t("Back")}
                     </button>
                 </div>
             )}
@@ -341,7 +344,10 @@ function CustomerPage() {
                         className="p-4 border-b border-gray-200 flex justify-between items-center bg-white"
                     >
                         <button
-                            onClick={() => setStarted(false)}
+                            onClick={() => {
+                                setStarted(false);
+                                setOrderItems([]);
+                            }}
                             className="bg-white border border-gray-300 px-4 py-2 rounded-md shadow hover:bg-gray-100 cursor-pointer"
                         >
                             ← {t("Back to Start")}
@@ -351,8 +357,11 @@ function CustomerPage() {
                                 onClick={() => setContrastMode((e) => !e)}
                                 className="bg-white border border-gray-300 px-4 py-2 rounded-md shadow hover:bg-gray-100 cursor-pointer"
                             >
-                                {contrastMode ? "Disable" : "Enable"} High
-                                Contrast
+                                {t(
+                                    contrastMode
+                                        ? "Disable High Contrast"
+                                        : "Enable High Contrast",
+                                )}
                             </button>
                             {tempLoaded && (
                                 <>
@@ -532,7 +541,7 @@ function CustomerPage() {
                                                     {item.quantity}
                                                 </div>
                                                 <div className="text-sm text-gray-500">
-                                                    {item.options?.join(", ")}
+                                                    {item.options.map(t)?.join(", ")}
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-3">
