@@ -82,17 +82,22 @@ function SalesReportPage() {
     setError("");
     setLoading(true);
     try {
-      // In a real app, we'd include all filters in the request
-      const res = await fetch(`/api/sales-report?start=${startDate}&end=${endDate}&category=${categoryFilter}`);
+      // Adjust the end date to be inclusive by adding one day
+      const endDateObj = new Date(endDate);
+      endDateObj.setDate(endDateObj.getDate() + 1);
+      const inclusiveEndDate = endDateObj.toISOString().split('T')[0];
+      
+      // Now use the inclusive end date in the API call
+      const res = await fetch(`/api/sales-report?start=${startDate}&end=${inclusiveEndDate}&category=${categoryFilter}`);
       const data = await res.json();
       setReportData(data);
-
+  
       // Calculate summary metrics
       if (data.length > 0) {
         const totalSales = data.reduce((sum: number, item: SalesItem) => sum + item.total_sales, 0);
         const totalOrders = data.reduce((sum: number, item: SalesItem) => sum + item.total_orders, 0);
         const topSellingItem = [...data].sort((a, b) => b.total_orders - a.total_orders)[0]?.menu_item || "";
-
+  
         setSummaryMetrics({
           totalSales,
           totalOrders,
@@ -101,7 +106,7 @@ function SalesReportPage() {
           salesGrowth: 0, // This would be calculated with comparison data
         });
       }
-
+  
       // If comparison is enabled, fetch previous period data
       if (comparisonPeriod) {
         fetchComparisonData();
@@ -211,7 +216,7 @@ function SalesReportPage() {
     const headers = ["Menu Item", "Category", "Total Orders", "Total Sales", "Average Order Value"];
     const rows = filteredData.map(row => [
       row.menu_item,
-      row.category || "Beverage", // hardcoded in
+      row.category, 
       row.total_orders,
       row.total_sales.toFixed(2),
       (row.total_sales / row.total_orders).toFixed(2)
