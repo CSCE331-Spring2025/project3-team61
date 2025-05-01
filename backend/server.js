@@ -245,7 +245,7 @@ app.post("/api/transaction", async (req, res) => {
         employee = null;
     } else {
         // loggined in (cashier page)
-        employee = req.user.id
+        employee = req.user.id;
     }
 
     const { paymentType, items } = req.body;
@@ -308,18 +308,23 @@ app.get("/api/employee", (req, res) => {
 
 // add employee
 app.post("/api/employee", async (req, res) => {
-    const { name, admin } = req.body;
+    const { name, email, admin } = req.body;
 
-    if (!name || typeof admin !== "boolean") {
+    if (!name || !email || typeof admin !== "boolean") {
         return res
             .status(400)
             .json({ success: false, message: "Invalid name or admin status" });
     }
 
-    const result = await pool.query(
-        "INSERT INTO employee (name, admin) VALUES ($1, $2) RETURNING *",
-        [name, admin],
-    );
+    let result;
+    try {
+        result = await pool.query(
+            "INSERT INTO employee (name, admin, email) VALUES ($1, $2, $3) RETURNING *",
+            [name, admin, email],
+        );
+    } catch (err) {
+        console.error("Error:", err);
+    }
 
     res.status(201).json({ success: true, employee: result.rows[0] });
 });

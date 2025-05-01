@@ -26,6 +26,7 @@ function ManagerEmployee() {
 
   const [newEmployeeModalOpen, setNewEmployeeModal] = useState(false);
   const [newEmployeeName, setNewEmployeeName] = useState('');
+  const [newEmployeeEmail, setNewEmployeeEmail] = useState("");
   const [newEmployeeAdmin, setNewEmployeeAdmin] = useState(false);
 
   useEffect(() => {
@@ -89,7 +90,7 @@ function ManagerEmployee() {
     const res = await fetch("/api/employee", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newEmployeeName, admin: newEmployeeAdmin }),
+      body: JSON.stringify({ name: newEmployeeName, email: newEmployeeEmail, admin: newEmployeeAdmin }),
     });
 
     if (res.ok) {
@@ -231,6 +232,13 @@ function ManagerEmployee() {
             placeholder="Employee Name"
             value={newEmployeeName}
             onChange={(e) => setNewEmployeeName(e.target.value)}
+            className="border px-4 py-2 rounded"
+          />
+          <input
+            type="text"
+            placeholder="Employee Email (TAMU)"
+            value={newEmployeeEmail}
+            onChange={(e) => setNewEmployeeEmail(e.target.value)}
             className="border px-4 py-2 rounded"
           />
 
