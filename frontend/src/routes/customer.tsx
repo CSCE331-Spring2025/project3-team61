@@ -64,6 +64,17 @@ function CustomerPage() {
 
     const paymentTypes = ["Card", "Cash"];
 
+    const fullCustomizationCategories = [
+        "milk_tea",
+        "fruit_tea",
+        "brewed_tea",
+        "fresh_milk",
+        "ice_blended",
+        "tea_mojito",
+        "creama",
+        "special_item"
+    ];
+
     const handlePayNow = () => {
         if (orderItems.length > 0) {
             setIsPaying(true);
@@ -279,11 +290,15 @@ function CustomerPage() {
 
     const addToOrder = () => {
         if (!selectedProduct) return;
+        const isFullCustom = fullCustomizationCategories.includes(selectedProduct.product_type);
+        const options = isFullCustom
+            ? [size, `${sugar} sugar`, ice]
+            : [size];
         const item: OrderItem = {
             name: selectedProduct.name,
             price: selectedProduct.price,
             quantity,
-            options: [size, `${sugar} sugar`, ice],
+            options,
         };
         setOrderItems((prev) => [...prev, item]);
         setDrinkCustomizeModalOpen(false);
@@ -695,24 +710,28 @@ function CustomerPage() {
                         t={t}
                     />
                 </div>
-                <div className="mb-3">
-                    <label className="font-semibold">{t("Sugar Level")}</label>
-                    <OptionButtons
-                        options={sugarLevels}
-                        value={sugar}
-                        setValue={setSugar}
-                        t={t}
-                    />
-                </div>
-                <div className="mb-3">
-                    <label className="font-semibold">{t("Ice Level")}</label>
-                    <OptionButtons
-                        options={iceLevels}
-                        value={ice}
-                        setValue={setIce}
-                        t={t}
-                    />
-                </div>
+                {selectedProduct && fullCustomizationCategories.includes(selectedProduct.product_type) && (
+                    <>
+                        <div className="mb-3">
+                            <label className="font-semibold">{t("Sugar Level")}</label>
+                            <OptionButtons
+                                options={sugarLevels}
+                                value={sugar}
+                                setValue={setSugar}
+                                t={t}
+                            />
+                        </div>
+                        <div className="mb-3">
+                            <label className="font-semibold">{t("Ice Level")}</label>
+                            <OptionButtons
+                                options={iceLevels}
+                                value={ice}
+                                setValue={setIce}
+                                t={t}
+                            />
+                        </div>
+                    </>
+                )}
                 <div className="flex items-center justify-between mt-4">
                     <div className="flex gap-3 items-center">
                         <button
